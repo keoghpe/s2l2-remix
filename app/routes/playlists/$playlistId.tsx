@@ -7,30 +7,38 @@ import { spotifyStrategy } from "~/services/auth.server";
 export async function loader({ request, params }: LoaderArgs) {
   invariant(params.playlistId, "noteId not found");
 
-  let data: { session: Session | null; playlist: Object | null } = {
+  let data: { session: Session | null; tracks: Array } = {
     session: null,
-    playlist: null,
+    tracks: [],
   };
   data.session = await spotifyStrategy.getSession(request);
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/playlists/${params.playlistId}`,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${data?.session?.accessToken}`,
-        Accept: "application/json",
-        // "Access-Control-Allow-Origin": "http://localhost:3000",
-      },
-      method: "GET",
+  let fetchMore = true;
+  let offset = 0;
+
+  while (fetchMore) {
+    const response = await fetch(
+      `https://api.spotify.com/v1/playlists/${params.playlistId}/tracks?limit=50&offset=${offset}`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Bearer ${data?.session?.accessToken}`,
+          Accept: "application/json",
+          // "Access-Control-Allow-Origin": "http://localhost:3000",
+        },
+        method: "GET",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(response.statusText);
+      //     throw new Response("Not Found", { status: 404 });
     }
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-    //     throw new Response("Not Found", { status: 404 });
+    let tracks = await response.json();
+    data.tracks = [...data.tracks, ...tracks.items];
+
+    fetchMore = tracks.items.length > 0;
+    offset += 50;
   }
-  data = data || {};
-  data.playlist = await response.json();
 
   return data;
 }
@@ -56,13 +64,11 @@ const Album = ({ name, image, id, artist }) => {
 
 export default function PlaylistDetailsPage() {
   const data = useLoaderData<typeof loader>();
-  const name = data.playlist?.name;
-  const images = data.playlist?.images;
-  const tracks = data.playlist?.tracks;
+  const tracks = data.tracks;
   const albums = [];
 
-  tracks?.items
-    .map((i) => i.track)
+  tracks
+    ?.map((i) => i.track)
     .forEach((t) => {
       if (!albums.find((a) => a.id === t.album.id)) {
         albums.push({
@@ -76,7 +82,6 @@ export default function PlaylistDetailsPage() {
 
   return (
     <div>
-      <h1>{name}</h1>
       {/* {images ? <img src={images[0].url} alt="" /> : ""} */}
       <div class="grid grid-cols-4 gap-4">
         {albums.map((album) => (
