@@ -15,7 +15,6 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const response = await fetch(
     `https://api.spotify.com/v1/playlists/${params.playlistId}`,
-    // TODO: Optimise the data fetched
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -45,12 +44,38 @@ export async function loader({ request, params }: LoaderArgs) {
 //   return redirect("/notes");
 // }
 
-export default function NoteDetailsPage() {
+export default function PlaylistDetailsPage() {
   const data = useLoaderData<typeof loader>();
+  const name = data.playlist?.name;
+  const images = data.playlist?.images;
+  const tracks = data.playlist?.tracks;
+  const albums = [];
+
+  tracks?.items
+    .map((i) => i.track)
+    .forEach((t) => {
+      if (!albums.find((a) => a.id === t.album.id)) {
+        albums.push({
+          name: t.album?.name,
+          id: t.album?.id,
+          artist: t.album?.artists[0]?.name,
+          image: t.album?.images[0]?.url,
+        });
+      }
+    });
 
   return (
     <div>
-      <h1>{JSON.stringify(data.playlist)}</h1>
+      <h1>{name}</h1>
+      {images ? <img src={images[0].url} alt="" /> : ""}
+      {albums.map((album) => (
+        <div>
+          <h2>{album.name}</h2>
+          <h2>{album.id}</h2>
+          <img src={album.image} alt="" />
+        </div>
+      ))}
+      {/* <h1>{JSON.stringify(data.playlist)}</h1> */}
     </div>
   );
 }
