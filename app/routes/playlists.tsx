@@ -5,28 +5,37 @@ import { useEffect, useState } from "react";
 import { spotifyStrategy } from "~/services/auth.server";
 
 export async function loader({ request }: LoaderArgs) {
-  let data: { session: Session | null; playlists: Object | null } = {
+  let data: { session: Session | null; playlists: Array } = {
     session: null,
-    playlists: null,
+    playlists: [],
   };
   data.session = await spotifyStrategy.getSession(request);
 
-  const response = await fetch(
-    "https://api.spotify.com/v1/me/playlists?limit=50",
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${data?.session?.accessToken}`,
-        Accept: "application/json",
-      },
-      method: "GET",
+  let fetchMore = true;
+  let offset = 0;
+
+  while (fetchMore) {
+    const response = await fetch(
+      `https://api.spotify.com/v1/me/playlists?limit=50&offset=${offset}`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Bearer ${data?.session?.accessToken}`,
+          Accept: "application/json",
+        },
+        method: "GET",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(response.statusText);
     }
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
+
+    let playlists = await response.json();
+    data.playlists = [...data.playlists, ...playlists.items];
+
+    fetchMore = playlists.items.length > 0;
+    offset += 50;
   }
-  data = data || {};
-  data.playlists = await response.json();
 
   return data;
 }
@@ -85,7 +94,7 @@ export default function Index() {
   const user = data?.session.user;
 
   const navData = data
-    ? data.playlists.items
+    ? data.playlists
         .filter(({ name }) => /s2l2/i.test(name))
         .map(({ name, id }) => ({
           name,
@@ -97,7 +106,7 @@ export default function Index() {
     <div className="relative flex h-screen flex-col bg-gray-800">
       <Navbar user={user}></Navbar>
       <div className="fixed top-0 bottom-0 left-0 z-50 h-screen w-64 bg-gray-900">
-        <nav className="overflow-y-auto">
+        <nav className="max-h-screen overflow-y-auto">
           {navData.map(({ id, name }) => (
             <NavLink
               to={id}

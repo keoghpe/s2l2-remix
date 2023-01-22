@@ -77,7 +77,7 @@ export default function PlaylistDetailsPage() {
   return (
     <div>
       <h1>{name}</h1>
-      {images ? <img src={images[0].url} alt="" /> : ""}
+      {/* {images ? <img src={images[0].url} alt="" /> : ""} */}
       <div class="grid grid-cols-4 gap-4">
         {albums.map((album) => (
           <Album {...album} />
