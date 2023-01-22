@@ -73,22 +73,6 @@ const Navbar = ({ user }) => {
   );
 };
 
-//   {user ? (
-//     [
-//       <p>
-//         You are logged in as: {user.name} ({user?.email})
-//       </p>,
-//       <p>{user?.id}</p>,
-//     ]
-//   ) : (
-//     <p>You are not logged in yet!</p>
-//   )}
-//   <Form action={user ? "/logout" : "/auth/spotify"} method="post">
-//     <button>{user ? "Logout" : "Log in with Spotify"}</button>
-//   </Form>
-//   <Outlet />
-// </div>
-
 export default function Index() {
   const data = useLoaderData<typeof loader>();
   const user = data?.session.user;
@@ -110,7 +94,11 @@ export default function Index() {
           {navData.map(({ id, name }) => (
             <NavLink
               to={id}
-              className="block py-2 px-4 font-medium text-orange-500 hover:text-orange-200"
+              className={({ isActive }) =>
+                `block py-2 px-4 font-medium text-orange-500 hover:text-orange-200 ${
+                  isActive ? "bg-white" : ""
+                }`
+              }
             >
               {name}
             </NavLink>
