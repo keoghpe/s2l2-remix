@@ -44,6 +44,16 @@ export async function loader({ request, params }: LoaderArgs) {
 //   return redirect("/notes");
 // }
 
+const Album = ({ name, image, id, artist }) => {
+  return (
+    <div className="rounded-lg bg-gray-800 p-6">
+      <img src={image} alt={name} className="w-full rounded-lg" />
+      <h2 className="mt-4 text-2xl font-medium text-white">{name}</h2>
+      <p className="text-gray-500">{artist}</p>
+    </div>
+  );
+};
+
 export default function PlaylistDetailsPage() {
   const data = useLoaderData<typeof loader>();
   const name = data.playlist?.name;
@@ -68,13 +78,11 @@ export default function PlaylistDetailsPage() {
     <div>
       <h1>{name}</h1>
       {images ? <img src={images[0].url} alt="" /> : ""}
-      {albums.map((album) => (
-        <div>
-          <h2>{album.name}</h2>
-          <h2>{album.id}</h2>
-          <img src={album.image} alt="" />
-        </div>
-      ))}
+      <div class="grid grid-cols-4 gap-4">
+        {albums.map((album) => (
+          <Album {...album} />
+        ))}
+      </div>
       {/* <h1>{JSON.stringify(data.playlist)}</h1> */}
     </div>
   );

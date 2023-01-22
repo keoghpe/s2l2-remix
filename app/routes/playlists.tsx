@@ -31,6 +31,55 @@ export async function loader({ request }: LoaderArgs) {
   return data;
 }
 
+const Navbar = ({ user }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  return (
+    <nav className="flex items-center justify-between bg-gray-800 p-4">
+      <div className="font-medium text-white">Your App</div>
+      {user ? (
+        <div className="relative">
+          <img
+            src={user.image}
+            alt={user.name}
+            className="h-8 w-8 cursor-pointer rounded-full"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          />
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 rounded-lg bg-gray-800 py-2 shadow-xl">
+              <Form action={"/logout"} method="post">
+                <button className="block px-4 py-2 font-medium text-white hover:bg-gray-700">
+                  {"Logout"}
+                </button>
+              </Form>
+            </div>
+          )}
+        </div>
+      ) : (
+        <Form action={"/auth/spotify"} method="post">
+          <button>{"Log in with Spotify"}</button>
+        </Form>
+      )}
+    </nav>
+  );
+};
+
+//   {user ? (
+//     [
+//       <p>
+//         You are logged in as: {user.name} ({user?.email})
+//       </p>,
+//       <p>{user?.id}</p>,
+//     ]
+//   ) : (
+//     <p>You are not logged in yet!</p>
+//   )}
+//   <Form action={user ? "/logout" : "/auth/spotify"} method="post">
+//     <button>{user ? "Logout" : "Log in with Spotify"}</button>
+//   </Form>
+//   <Outlet />
+// </div>
+
 export default function Index() {
   const data = useLoaderData<typeof loader>();
   const user = data?.session.user;
@@ -46,6 +95,7 @@ export default function Index() {
 
   return (
     <div className="relative flex h-screen flex-col bg-gray-800">
+      <Navbar user={user}></Navbar>
       <div className="fixed top-0 bottom-0 left-0 z-50 h-screen w-64 bg-gray-900">
         <nav className="overflow-y-auto">
           {navData.map(({ id, name }) => (
@@ -64,26 +114,3 @@ export default function Index() {
     </div>
   );
 }
-
-// <div style={{ textAlign: "center", padding: 20 }}>
-//   <Sidebar />
-//   <h2>Welcome to Remix!</h2>
-//   <p>
-//     <a href="https://docs.remix.run">Check out the docs</a> to get started.
-//   </p>
-//   {user?.image ? <img src={user.image} alt="" /> : ""}
-//   {user ? (
-//     [
-//       <p>
-//         You are logged in as: {user.name} ({user?.email})
-//       </p>,
-//       <p>{user?.id}</p>,
-//     ]
-//   ) : (
-//     <p>You are not logged in yet!</p>
-//   )}
-//   <Form action={user ? "/logout" : "/auth/spotify"} method="post">
-//     <button>{user ? "Logout" : "Log in with Spotify"}</button>
-//   </Form>
-//   <Outlet />
-// </div>
