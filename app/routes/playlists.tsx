@@ -87,26 +87,29 @@ export default function Index() {
     : [];
 
   return (
-    <div className="relative flex h-screen flex-col bg-gray-800">
-      <Navbar user={user}></Navbar>
-      <div className="fixed top-0 bottom-0 left-0 z-50 h-screen w-64 bg-gray-900">
-        <nav className="max-h-screen overflow-y-auto">
-          {navData.map(({ id, name }) => (
-            <NavLink
-              to={id}
-              className={({ isActive }) =>
-                `block py-2 px-4 font-medium text-orange-500 hover:text-orange-200 ${
-                  isActive ? "bg-white" : ""
-                }`
-              }
-            >
-              {name}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
-      <div className="relative flex-1">
-        <Outlet></Outlet>
+    // bg-gray-800
+    <div>
+      <div className="relative flex h-screen flex-col ">
+        <Navbar user={user}></Navbar>
+        <div className="fixed top-0 bottom-0 left-0 z-50 h-screen w-64 bg-gray-900">
+          <nav className="max-h-screen overflow-y-auto">
+            {navData.map(({ id, name }) => (
+              <NavLink
+                to={id}
+                className={({ isActive }) =>
+                  `block py-2 px-4 font-medium text-orange-500 hover:text-orange-200 ${
+                    isActive ? "bg-white" : ""
+                  }`
+                }
+              >
+                {name}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+        <div className="relative flex-1">
+          <Outlet></Outlet>
+        </div>
       </div>
     </div>
   );

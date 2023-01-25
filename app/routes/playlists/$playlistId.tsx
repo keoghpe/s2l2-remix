@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData } from "@remix-run/react";
+import { Form, useCatch, useLoaderData, useSubmit } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { spotifyStrategy } from "~/services/auth.server";
 
@@ -43,22 +43,49 @@ export async function loader({ request, params }: LoaderArgs) {
   return data;
 }
 
-// export async function action({ request, params }: ActionArgs) {
-//   const userId = await requireUserId(request);
-//   invariant(params.noteId, "noteId not found");
+export async function action({ request, params }: ActionArgs) {
+  let session = await spotifyStrategy.getSession(request);
 
-//   await deleteNote({ userId, id: params.noteId });
+  const formData = await request.formData();
+  const albumId = formData.get("albumId");
 
-//   return redirect("/notes");
-// }
+  const response = await fetch(`https://api.spotify.com/v1/me/player/play`, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Bearer ${session?.accessToken}`,
+      Accept: "application/json",
+    },
+    method: "PUT",
+    body: JSON.stringify({
+      context_uri: `spotify:album:${albumId}`,
+      position_ms: 0,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  return redirect(`/playlists/${params.playlistId}`);
+}
 
 const Album = ({ name, image, id, artist }) => {
+  const submit = useSubmit();
+
   return (
-    <div className="rounded-lg bg-gray-800 p-6">
-      <img src={image} alt={name} className="w-full rounded-lg" />
-      <h2 className="mt-4 text-2xl font-medium text-white">{name}</h2>
-      <p className="text-gray-500">{artist}</p>
-    </div>
+    <Form
+      onClick={(e) => {
+        e.preventDefault();
+        submit(e.currentTarget);
+      }}
+      method="post"
+    >
+      <div className="rounded-lg bg-gray-800 p-6">
+        <img src={image} alt={name} className="w-full rounded-lg" />
+        <h2 className="mt-4 text-2xl font-medium text-white">{name}</h2>
+        <p className="text-gray-500">{artist}</p>
+        <input value={id} name="albumId" hidden />
+      </div>
+    </Form>
   );
 };
 
