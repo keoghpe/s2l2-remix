@@ -9,33 +9,35 @@ export async function loader({ request }: LoaderArgs) {
     session: null,
     playlists: [],
   };
-  data.session = await spotifyStrategy.getSession(request);
+  try {
+    data.session = await spotifyStrategy.getSession(request);
 
-  let fetchMore = true;
-  let offset = 0;
+    let fetchMore = true;
+    let offset = 0;
 
-  while (fetchMore) {
-    const response = await fetch(
-      `https://api.spotify.com/v1/me/playlists?limit=50&offset=${offset}`,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${data?.session?.accessToken}`,
-          Accept: "application/json",
-        },
-        method: "GET",
+    while (fetchMore) {
+      const response = await fetch(
+        `https://api.spotify.com/v1/me/playlists?limit=50&offset=${offset}`,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Bearer ${data?.session?.accessToken}`,
+            Accept: "application/json",
+          },
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(response.statusText);
       }
-    );
-    if (!response.ok) {
-      throw new Error(response.statusText);
+
+      let playlists = await response.json();
+      data.playlists = [...data.playlists, ...playlists.items];
+
+      fetchMore = playlists.items.length > 0;
+      offset += 50;
     }
-
-    let playlists = await response.json();
-    data.playlists = [...data.playlists, ...playlists.items];
-
-    fetchMore = playlists.items.length > 0;
-    offset += 50;
-  }
+  } catch {}
 
   return data;
 }
@@ -75,7 +77,7 @@ const Navbar = ({ user }) => {
 
 export default function Index() {
   const data = useLoaderData<typeof loader>();
-  const user = data?.session.user;
+  const user = data?.session?.user;
 
   const navData = data
     ? data.playlists
