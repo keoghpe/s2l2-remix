@@ -91,8 +91,8 @@ export default function Index() {
     <div>
       <div className="relative flex h-screen flex-col ">
         <Navbar user={user}></Navbar>
-        <div className="fixed top-0 bottom-0 left-0 z-50 h-screen w-64 bg-gray-900">
-          <nav className="max-h-screen overflow-y-auto">
+        <div className="grid grid-cols-5">
+          <nav className="row-span-6 bg-gray-900">
             {navData.map(({ id, name }) => (
               <NavLink
                 to={id}
@@ -106,9 +106,9 @@ export default function Index() {
               </NavLink>
             ))}
           </nav>
-        </div>
-        <div className="relative flex-1">
-          <Outlet></Outlet>
+          <div className="col-span-4">
+            <Outlet></Outlet>
+          </div>
         </div>
       </div>
     </div>

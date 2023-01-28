@@ -1,6 +1,14 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData, useSubmit } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  Outlet,
+  useCatch,
+  useLoaderData,
+  useOutlet,
+  useSubmit,
+} from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { spotifyStrategy } from "~/services/auth.server";
 
@@ -43,49 +51,15 @@ export async function loader({ request, params }: LoaderArgs) {
   return data;
 }
 
-export async function action({ request, params }: ActionArgs) {
-  let session = await spotifyStrategy.getSession(request);
-
-  const formData = await request.formData();
-  const albumId = formData.get("albumId");
-
-  const response = await fetch(`https://api.spotify.com/v1/me/player/play`, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    method: "PUT",
-    body: JSON.stringify({
-      context_uri: `spotify:album:${albumId}`,
-      position_ms: 0,
-    }),
-  });
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  return redirect(`/playlists/${params.playlistId}`);
-}
-
 const Album = ({ name, image, id, artist }) => {
-  const submit = useSubmit();
-
   return (
-    <Form
-      onClick={(e) => {
-        e.preventDefault();
-        submit(e.currentTarget);
-      }}
-      method="post"
-    >
+    <Link to={`./albums/${id}`}>
       <div className="rounded-lg bg-gray-800 p-6">
         <img src={image} alt={name} className="w-full rounded-lg" />
         <h2 className="mt-4 text-2xl font-medium text-white">{name}</h2>
         <p className="text-gray-500">{artist}</p>
-        <input value={id} name="albumId" hidden />
       </div>
-    </Form>
+    </Link>
   );
 };
 
@@ -93,6 +67,7 @@ export default function PlaylistDetailsPage() {
   const data = useLoaderData<typeof loader>();
   const tracks = data.tracks;
   const albums = [];
+  const outlet = useOutlet();
 
   tracks
     ?.map((i) => i.track)
@@ -109,13 +84,12 @@ export default function PlaylistDetailsPage() {
 
   return (
     <div>
-      {/* {images ? <img src={images[0].url} alt="" /> : ""} */}
-      <div class="grid grid-cols-4 gap-4">
+      {outlet}
+      <div className={`grid ${outlet ? "grid-cols-5" : "grid-cols-3"} gap-4`}>
         {albums.map((album) => (
           <Album {...album} />
         ))}
       </div>
-      {/* <h1>{JSON.stringify(data.playlist)}</h1> */}
     </div>
   );
 }
