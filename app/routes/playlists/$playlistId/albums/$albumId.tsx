@@ -77,26 +77,45 @@ export default function AlbumDetailsPage() {
   const image = data.album?.images[0]?.url;
   const tracks = data.album.tracks.items;
 
-  console.log(data.album);
-
   return (
     <div>
-      <div className="rounded-lg bg-gray-800 p-6">
+      <div className="my-3 rounded-lg bg-gray-800 p-6">
         <div className="grid grid-cols-2">
           <div>
             <img src={image} alt={name} className="w-full rounded-lg" />
-            <h2 className="mt-4 text-2xl font-medium text-white">{name}</h2>
+            <h2 className="mt-4 text-2xl font-medium text-white">
+              {name}
+
+              <Form
+                onClick={(e) => {
+                  e.preventDefault();
+                  submit(e.currentTarget);
+                }}
+                method="post"
+                className="row-span-1 float-right text-2xl text-white "
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="mx-1 h-9 w-9"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"
+                  />
+                </svg>
+              </Form>
+            </h2>
             <p className="text-gray-500">{artist}</p>
-            <Form
-              onClick={(e) => {
-                e.preventDefault();
-                submit(e.currentTarget);
-              }}
-              method="post"
-              className="row-span-1"
-            >
-              PLAY THIS ALBUM
-            </Form>
           </div>
           <div>
             {tracks.map(({ name, duration_ms, id }) => (
@@ -106,10 +125,15 @@ export default function AlbumDetailsPage() {
                   submit(e.currentTarget);
                 }}
                 method="post"
-                className="row-span-1"
+                className="row-span-1 mx-3 cursor-pointer p-1 text-white hover:bg-white hover:bg-opacity-10"
               >
-                {name} {Math.floor(duration_ms / 60 / 1000)}:
-                {Math.round((duration_ms / 1000) % 60)}
+                <p className="w-full">
+                  {name}
+                  <span className="float-right text-right">
+                    {Math.floor(duration_ms / 60 / 1000)}:
+                    {Math.round((duration_ms / 1000) % 60)}
+                  </span>
+                </p>
                 <input hidden value={id} name="trackId" />
               </Form>
             ))}

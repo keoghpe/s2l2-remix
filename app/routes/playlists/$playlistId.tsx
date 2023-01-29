@@ -48,6 +48,8 @@ export async function loader({ request, params }: LoaderArgs) {
     offset += 50;
   }
 
+  data.tracks.reverse();
+
   return data;
 }
 
@@ -85,7 +87,7 @@ export default function PlaylistDetailsPage() {
   return (
     <div>
       {outlet}
-      <div className={`grid ${outlet ? "grid-cols-5" : "grid-cols-3"} gap-4`}>
+      <div className={`grid grid-cols-2 gap-4 xl:grid-cols-3`}>
         {albums.map((album) => (
           <Album {...album} />
         ))}
