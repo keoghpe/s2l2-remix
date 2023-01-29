@@ -31,7 +31,7 @@ export const fetchPlaylists = async (accessToken: string) => {
 
 export const fetchPlaylist = async (accessToken: string, playlistId: string) => {
   let data = {
-    playlist: null,
+    playlist: {},
     tracks: [],
   }
 
@@ -50,7 +50,12 @@ export const fetchPlaylist = async (accessToken: string, playlistId: string) => 
     throw new Error(response.statusText);
   }
 
-  data.playlist = await response.json();
+  let playlist = await response.json();
+
+  data.playlist = {
+    id: playlistId,
+    name: playlist.name,
+  }
 
   let fetchMore = true;
   let offset = 0;
