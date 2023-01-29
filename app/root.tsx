@@ -9,7 +9,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-import { getUser } from "./session.server";
+// import { getUser } from "./session.server";
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 
 export const links: LinksFunction = () => {
@@ -22,11 +22,11 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
-export async function loader({ request }: LoaderArgs) {
-  return json({
-    user: await getUser(request),
-  });
-}
+// export async function loader({ request }: LoaderArgs) {
+//   return json({
+//     user: await getUser(request),
+//   });
+// }
 
 export default function App() {
   return (

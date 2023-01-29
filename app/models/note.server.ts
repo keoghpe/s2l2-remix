@@ -1,54 +1,55 @@
-import type { User, Note } from "@prisma/client";
+import type { Note } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 
 export type { Note } from "@prisma/client";
 
 export function getNote({
-  id,
-  userId,
-}: Pick<Note, "id"> & {
-  userId: User["id"];
-}) {
+  spotifyUserId,
+  spotifyAlbumId
+}: Pick<Note, "spotifyUserId" | "spotifyAlbumId">) {
   return prisma.note.findFirst({
-    select: { id: true, body: true, title: true },
-    where: { id, userId },
+    select: { id: true, body: true, rating: true },
+    where: { spotifyAlbumId, spotifyUserId},
   });
 }
 
-export function getNoteListItems({ userId }: { userId: User["id"] }) {
-  return prisma.note.findMany({
-    where: { userId },
-    select: { id: true, title: true },
-    orderBy: { updatedAt: "desc" },
-  });
-}
+// export function getNoteListItems({ userId }: { userId: User["id"] }) {
+//   return prisma.note.findMany({
+//     where: { userId },
+//     select: { id: true, title: true },
+//     orderBy: { updatedAt: "desc" },
+//   });
+// }
 
-export function createNote({
+export function upsertNote({
   body,
-  title,
-  userId,
-}: Pick<Note, "body" | "title"> & {
-  userId: User["id"];
-}) {
-  return prisma.note.create({
-    data: {
-      title,
+  rating,
+  spotifyUserId,
+  spotifyAlbumId
+}: Pick<Note, "body" | "rating" | "spotifyUserId" | "spotifyAlbumId">) {
+  return prisma.note.upsert({
+    where: {
+      spotifyUserId_spotifyAlbumId: {spotifyUserId,spotifyAlbumId,}
+    },
+    update: {
+      rating,
       body,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+    },
+    create: {
+      spotifyUserId,
+      spotifyAlbumId,
+      rating,
+      body,
     },
   });
 }
 
-export function deleteNote({
-  id,
-  userId,
-}: Pick<Note, "id"> & { userId: User["id"] }) {
-  return prisma.note.deleteMany({
-    where: { id, userId },
-  });
-}
+// export function deleteNote({
+//   id,
+//   userId,
+// }: Pick<Note, "id"> & { userId: User["id"] }) {
+//   return prisma.note.deleteMany({
+//     where: { id, userId },
+//   });
+// }

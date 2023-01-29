@@ -36,11 +36,6 @@ export async function loader({ request, params }: LoaderArgs) {
     }
   );
 
-  // let { playlist, tracks } = await fetchPlaylist(
-  //   data.session.accessToken,
-  //   params.playlistId
-  // );
-
   data.playlist = playlist;
   data.tracks = tracks;
 

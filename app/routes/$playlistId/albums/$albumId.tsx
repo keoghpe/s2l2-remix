@@ -1,6 +1,15 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData, useSubmit } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  NavLink,
+  Outlet,
+  useCatch,
+  useLoaderData,
+  useOutlet,
+  useSubmit,
+} from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { spotifyStrategy } from "~/services/auth.server";
 
@@ -65,8 +74,63 @@ export async function action({ request, params }: ActionArgs) {
     throw new Error(response.statusText);
   }
 
-  return redirect(`/${params.playlistId}/albums/${params.albumId}`);
+  return redirect(`/${params.playlistId}/albums/${params.albumId}/tracks`);
 }
+
+const PlayIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="mx-1 h-9 w-9"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"
+    />
+  </svg>
+);
+
+const TabLink = ({ to, children }) => (
+  <NavLink
+    className={({ isActive }) => {
+      const additional = isActive ? "text-orange-600" : "";
+      return `${additional} cursor-pointer p-5 text-white hover:bg-white hover:bg-opacity-10`;
+    }}
+    to={to}
+  >
+    {children}
+  </NavLink>
+);
+
+const TrackList = ({ tracks, submit }) =>
+  tracks.map(({ name, duration_ms, id }) => (
+    <Form
+      onClick={(e) => {
+        e.preventDefault();
+        submit(e.currentTarget);
+      }}
+      method="post"
+      className="row-span-1 mx-3 cursor-pointer p-1 text-white hover:bg-white hover:bg-opacity-10"
+    >
+      <p className="w-full">
+        {name}
+        <span className="float-right text-right">
+          {Math.floor(duration_ms / 60 / 1000)}:
+          {Math.round((duration_ms / 1000) % 60)}
+        </span>
+      </p>
+      <input hidden value={id} name="trackId" />
+    </Form>
+  ));
 
 export default function AlbumDetailsPage() {
   const data = useLoaderData<typeof loader>();
@@ -76,6 +140,7 @@ export default function AlbumDetailsPage() {
   const artist = data.album?.artists[0]?.name;
   const image = data.album?.images[0]?.url;
   const tracks = data.album.tracks.items;
+  const outlet = useOutlet();
 
   return (
     <div>
@@ -94,49 +159,17 @@ export default function AlbumDetailsPage() {
                 method="post"
                 className="row-span-1 float-right text-2xl text-white "
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="mx-1 h-9 w-9"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"
-                  />
-                </svg>
+                <PlayIcon />
               </Form>
             </h2>
             <p className="text-gray-500">{artist}</p>
           </div>
           <div>
-            {tracks.map(({ name, duration_ms, id }) => (
-              <Form
-                onClick={(e) => {
-                  e.preventDefault();
-                  submit(e.currentTarget);
-                }}
-                method="post"
-                className="row-span-1 mx-3 cursor-pointer p-1 text-white hover:bg-white hover:bg-opacity-10"
-              >
-                <p className="w-full">
-                  {name}
-                  <span className="float-right text-right">
-                    {Math.floor(duration_ms / 60 / 1000)}:
-                    {Math.round((duration_ms / 1000) % 60)}
-                  </span>
-                </p>
-                <input hidden value={id} name="trackId" />
-              </Form>
-            ))}
+            <div className="grid grid-cols-2 text-center ">
+              <TabLink to=".">Tracks</TabLink>
+              <TabLink to="./notes">Notes</TabLink>
+            </div>
+            {outlet ? outlet : <TrackList submit={submit} tracks={tracks} />}
           </div>
         </div>
       </div>
