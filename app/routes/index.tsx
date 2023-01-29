@@ -1,46 +1,29 @@
-import type { LoaderArgs } from "@remix-run/node";
+import { json, LoaderArgs } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import ViewWithNavbar from "~/components/ViewWithNavbar";
 
 import { spotifyStrategy } from "~/services/auth.server";
+import { cached } from "~/services/redis.server";
+import { fetchPlaylists } from "~/services/spotifyApi.server";
 
 export async function loader({ request }: LoaderArgs) {
   let data: { session: Session | null; playlists: Array } = {
     session: null,
     playlists: [],
   };
-  try {
-    data.session = await spotifyStrategy.getSession(request);
 
-    let fetchMore = true;
-    let offset = 0;
+  data.session = await spotifyStrategy.getSession(request);
 
-    while (fetchMore) {
-      const response = await fetch(
-        `https://api.spotify.com/v1/me/playlists?limit=50&offset=${offset}`,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Bearer ${data?.session?.accessToken}`,
-            Accept: "application/json",
-          },
-          method: "GET",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(response.statusText);
-      }
-
-      let playlists = await response.json();
-      data.playlists = [...data.playlists, ...playlists.items];
-
-      fetchMore = playlists.items.length > 0;
-      offset += 50;
+  data.playlists = await cached(
+    `playlists:${data.session.user.id}`,
+    async () => {
+      return await fetchPlaylists(data.session.accessToken);
     }
-  } catch {}
+  );
+  // data.playlists = await fetchPlaylists(data.session.accessToken);
 
-  return data;
+  return json(data);
 }
 
 const Playlist = ({ name, image, id }) => {

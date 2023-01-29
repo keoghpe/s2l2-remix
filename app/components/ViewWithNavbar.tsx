@@ -41,7 +41,7 @@ const Navbar = ({ user }) => {
         </div>
       ) : (
         <Form action={"/auth/spotify"} method="post">
-          <button>{"Log in with Spotify"}</button>
+          <button className="text-white">{"Log in with Spotify"}</button>
         </Form>
       )}
     </nav>

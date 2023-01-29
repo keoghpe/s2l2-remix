@@ -105,8 +105,6 @@ export default function PlaylistDetailsPage() {
       }
     });
 
-  console.log(data);
-
   return (
     <ViewWithNavbar>
       <div>
