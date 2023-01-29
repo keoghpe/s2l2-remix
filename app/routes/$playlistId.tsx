@@ -12,9 +12,11 @@ import {
 import invariant from "tiny-invariant";
 import ViewWithNavbar from "~/components/ViewWithNavbar";
 import { spotifyStrategy } from "~/services/auth.server";
+import { cached } from "~/services/redis.server";
+import { fetchPlaylist } from "~/services/spotifyApi.server";
 
 export async function loader({ request, params }: LoaderArgs) {
-  invariant(params.playlistId, "noteId not found");
+  invariant(params.playlistId, "playlist not found");
 
   let data: {
     session: Session | null;
@@ -27,49 +29,20 @@ export async function loader({ request, params }: LoaderArgs) {
   };
   data.session = await spotifyStrategy.getSession(request);
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/playlists/${params.playlistId}`,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${data?.session?.accessToken}`,
-        Accept: "application/json",
-      },
-      method: "GET",
+  let { playlist, tracks } = await cached(
+    `playlist:${data.session.user.id}:${params.playlistId}`,
+    async () => {
+      return await fetchPlaylist(data.session.accessToken, params.playlistId);
     }
   );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
 
-  data.playlist = await response.json();
+  // let { playlist, tracks } = await fetchPlaylist(
+  //   data.session.accessToken,
+  //   params.playlistId
+  // );
 
-  let fetchMore = true;
-  let offset = 0;
-
-  while (fetchMore) {
-    const response = await fetch(
-      `https://api.spotify.com/v1/playlists/${params.playlistId}/tracks?limit=50&offset=${offset}`,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${data?.session?.accessToken}`,
-          Accept: "application/json",
-        },
-        method: "GET",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    let tracks = await response.json();
-    data.tracks = [...data.tracks, ...tracks.items];
-
-    fetchMore = tracks.items.length > 0;
-    offset += 50;
-  }
-
-  data.tracks.reverse();
+  data.playlist = playlist;
+  data.tracks = tracks;
 
   return data;
 }

@@ -21,7 +21,6 @@ export async function loader({ request }: LoaderArgs) {
       return await fetchPlaylists(data.session.accessToken);
     }
   );
-  // data.playlists = await fetchPlaylists(data.session.accessToken);
 
   return json(data);
 }
@@ -39,7 +38,6 @@ const Playlist = ({ name, image, id }) => {
 
 export default function Index() {
   const data = useLoaderData<typeof loader>();
-  console.log(data);
 
   const playlists = data
     ? data.playlists
