@@ -5,6 +5,6 @@ import { authenticator } from "~/services/auth.server";
 export function loader({ request }: LoaderArgs) {
   return authenticator.authenticate("spotify", request, {
     successRedirect: "/",
-    failureRedirect: "/login",
+    failureRedirect: "/wtf",
   });
 }
