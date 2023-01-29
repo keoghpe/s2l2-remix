@@ -10,16 +10,39 @@ import {
   useSubmit,
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
+import ViewWithNavbar from "~/components/ViewWithNavbar";
 import { spotifyStrategy } from "~/services/auth.server";
 
 export async function loader({ request, params }: LoaderArgs) {
   invariant(params.playlistId, "noteId not found");
 
-  let data: { session: Session | null; tracks: Array } = {
+  let data: {
+    session: Session | null;
+    tracks: Array;
+    playlist: Object | null;
+  } = {
     session: null,
     tracks: [],
+    playlist: null,
   };
   data.session = await spotifyStrategy.getSession(request);
+
+  const response = await fetch(
+    `https://api.spotify.com/v1/playlists/${params.playlistId}`,
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${data?.session?.accessToken}`,
+        Accept: "application/json",
+      },
+      method: "GET",
+    }
+  );
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  data.playlist = await response.json();
 
   let fetchMore = true;
   let offset = 0;
@@ -32,14 +55,12 @@ export async function loader({ request, params }: LoaderArgs) {
           "Content-Type": "application/x-www-form-urlencoded",
           Authorization: `Bearer ${data?.session?.accessToken}`,
           Accept: "application/json",
-          // "Access-Control-Allow-Origin": "http://localhost:3000",
         },
         method: "GET",
       }
     );
     if (!response.ok) {
       throw new Error(response.statusText);
-      //     throw new Response("Not Found", { status: 404 });
     }
     let tracks = await response.json();
     data.tracks = [...data.tracks, ...tracks.items];
@@ -84,15 +105,24 @@ export default function PlaylistDetailsPage() {
       }
     });
 
+  console.log(data);
+
   return (
-    <div>
-      {outlet}
-      <div className={`grid grid-cols-2 gap-4 xl:grid-cols-3`}>
-        {albums.map((album) => (
-          <Album {...album} />
-        ))}
+    <ViewWithNavbar>
+      <div>
+        <Link to={`/${data.playlist.id}`}>
+          <h1 className="my-5 text-center text-3xl text-white">
+            {data.playlist.name}
+          </h1>
+        </Link>
+        {outlet}
+        <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
+          {albums.map((album) => (
+            <Album {...album} />
+          ))}
+        </div>
       </div>
-    </div>
+    </ViewWithNavbar>
   );
 }
 

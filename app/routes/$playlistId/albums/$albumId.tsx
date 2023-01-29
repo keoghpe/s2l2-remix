@@ -65,7 +65,7 @@ export async function action({ request, params }: ActionArgs) {
     throw new Error(response.statusText);
   }
 
-  return redirect(`/playlists/${params.playlistId}/albums/${params.albumId}`);
+  return redirect(`/${params.playlistId}/albums/${params.albumId}`);
 }
 
 export default function AlbumDetailsPage() {
