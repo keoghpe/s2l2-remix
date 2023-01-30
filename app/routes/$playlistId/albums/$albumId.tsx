@@ -74,7 +74,7 @@ export async function action({ request, params }: ActionArgs) {
     throw new Error(response.statusText);
   }
 
-  return redirect(`/${params.playlistId}/albums/${params.albumId}/tracks`);
+  return redirect(`/${params.playlistId}/albums/${params.albumId}`);
 }
 
 const PlayIcon = () => (
