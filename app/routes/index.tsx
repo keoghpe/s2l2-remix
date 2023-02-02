@@ -15,12 +15,14 @@ export async function loader({ request }: LoaderArgs) {
 
   data.session = await spotifyStrategy.getSession(request);
 
-  data.playlists = await cached(
-    `playlists:${data.session.user.id}`,
-    async () => {
-      return await fetchPlaylists(data.session.accessToken);
-    }
-  );
+  if (data.session?.user) {
+    data.playlists = await cached(
+      `playlists:${data.session.user.id}`,
+      async () => {
+        return await fetchPlaylists(data.session.accessToken);
+      }
+    );
+  }
 
   return json(data);
 }
