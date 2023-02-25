@@ -10,7 +10,6 @@ import {
   useSubmit,
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
-import ViewWithNavbar from "~/components/ViewWithNavbar";
 import { spotifyStrategy } from "~/services/auth.server";
 import { cached } from "~/services/redis.server";
 import { fetchPlaylist } from "~/services/spotifyApi.server";
@@ -74,21 +73,19 @@ export default function PlaylistDetailsPage() {
     });
 
   return (
-    <ViewWithNavbar>
-      <div>
-        <Link to={`/${data.playlist.id}`}>
-          <h1 className="my-5 text-center text-3xl text-white">
-            {data.playlist.name}
-          </h1>
-        </Link>
-        {outlet}
-        <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
-          {albums.map((album) => (
-            <Album {...album} />
-          ))}
-        </div>
+    <div>
+      <Link to={`/${data.playlist.id}`}>
+        <h1 className="my-5 text-center text-3xl text-white">
+          {data.playlist.name}
+        </h1>
+      </Link>
+      {outlet}
+      <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
+        {albums.map((album) => (
+          <Album {...album} />
+        ))}
       </div>
-    </ViewWithNavbar>
+    </div>
   );
 }
 

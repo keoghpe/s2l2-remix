@@ -1,7 +1,6 @@
 import { json, LoaderArgs } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import ViewWithNavbar from "~/components/ViewWithNavbar";
 
 import { spotifyStrategy } from "~/services/auth.server";
 import { cached } from "~/services/redis.server";
@@ -52,12 +51,10 @@ export default function Index() {
     : [];
 
   return (
-    <ViewWithNavbar>
-      <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
-        {playlists.map((playlist) => (
-          <Playlist {...playlist} />
-        ))}
-      </div>
-    </ViewWithNavbar>
+    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
+      {playlists.map((playlist) => (
+        <Playlist {...playlist} />
+      ))}
+    </div>
   );
 }
