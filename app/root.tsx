@@ -13,7 +13,10 @@ import {
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
+  return [
+    { rel: "stylesheet", href: tailwindStylesheetUrl },
+    { rel: "manifest", href: "/manifest.json" },
+  ];
 };
 
 export const meta: MetaFunction = () => ({
