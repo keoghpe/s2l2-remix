@@ -15,7 +15,7 @@ import tailwindStylesheetUrl from "./styles/tailwind.css";
 export const links: LinksFunction = () => {
   return [
     { rel: "stylesheet", href: tailwindStylesheetUrl },
-    { rel: "manifest", href: "/manifest.json" },
+    { rel: "manifest", href: "./manifest.json" },
   ];
 };
 
