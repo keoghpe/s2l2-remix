@@ -20,7 +20,8 @@ export const cached = async (cacheKey, callback) => {
   } else {
     const results = await callback();
 
-    await client.set(cacheKey, JSON.stringify(results))
+    await client.set(cacheKey, JSON.stringify(results));
+    await client.expire(cacheKey, 3600);
 
     return results;
   }
