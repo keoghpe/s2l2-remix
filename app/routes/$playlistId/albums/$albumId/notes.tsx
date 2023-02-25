@@ -64,7 +64,7 @@ export default function NewNotePage() {
   const actionData = useActionData<typeof action>();
   const ratingRef = React.useRef<HTMLInputElement>(null);
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);
-  const isEditing = false;
+  const [editing, setEditing] = React.useState(!data.noteHTML);
 
   React.useEffect(() => {
     if (actionData?.errors?.rating) {
@@ -74,7 +74,7 @@ export default function NewNotePage() {
     }
   }, [actionData]);
 
-  return isEditing ? (
+  return editing ? (
     <Form
       method="post"
       style={{
@@ -141,9 +141,18 @@ export default function NewNotePage() {
       </div>
     </Form>
   ) : (
-    <article
-      className="prose lg:prose-xl"
-      dangerouslySetInnerHTML={{ __html: data.noteHTML }}
-    />
+    <div>
+      <div
+        className="inline-block rounded  bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
+        onClick={() => setEditing(true)}
+      >
+        Edit
+      </div>
+
+      <article
+        className="prose lg:prose-xl"
+        dangerouslySetInnerHTML={{ __html: data.noteHTML }}
+      />
+    </div>
   );
 }
