@@ -11,8 +11,7 @@ import {
   useLoaderData,
   useRouteLoaderData,
 } from "@remix-run/react";
-import React from "react";
-import ViewWithNavbar from "./components/ViewWithNavbar";
+import React, { useEffect } from "react";
 import { spotifyStrategy } from "./services/auth.server";
 
 // import { getUser } from "./session.server";
@@ -44,6 +43,60 @@ export async function loader({ request }: LoaderArgs) {
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const user = data?.session?.user;
+  const playerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (window.Spotify) {
+      const token = data.session.accessToken;
+
+      playerRef.current = new Spotify.Player({
+        name: "Web Playback SDK Quick Start Player",
+        getOAuthToken: (cb) => {
+          cb(token);
+        },
+        volume: 0.5,
+      });
+    }
+
+    (window as any).onSpotifyWebPlaybackSDKReady = () => {
+      const token = data.session.accessToken;
+
+      const player = new Spotify.Player({
+        name: "Web Playback SDK Quick Start Player",
+        getOAuthToken: (cb) => {
+          cb(token);
+        },
+        volume: 0.5,
+      });
+
+      player.addListener("ready", ({ device_id }) => {
+        console.log("Ready with Device ID", device_id);
+      });
+
+      player.addListener("initialization_error", ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener("authentication_error", ({ message }) => {
+        console.error(message);
+      });
+
+      player.addListener("account_error", ({ message }) => {
+        console.error(message);
+      });
+
+      player.connect();
+
+      playerRef.current = player;
+    };
+
+    if (!window.Spotify) {
+      const scriptTag = document.createElement("script");
+      scriptTag.src = "https://sdk.scdn.co/spotify-player.js";
+
+      document.head!.appendChild(scriptTag);
+    }
+  }, []);
 
   return (
     <html lang="en" className="h-full">
@@ -60,7 +113,6 @@ export default function App() {
         </div>
         <ScrollRestoration />
         <Scripts />
-        <script src="https://sdk.scdn.co/spotify-player.js"></script>
         <LiveReload />
       </body>
     </html>
