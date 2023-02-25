@@ -74,7 +74,7 @@ export async function action({ request, params }: ActionArgs) {
     throw new Error(response.statusText);
   }
 
-  return redirect(`/${params.playlistId}/albums/${params.albumId}`);
+  return redirect(`/${params.playlistId}/albums/${params.albumId}/notes`);
 }
 
 const PlayIcon = () => (
@@ -146,31 +146,30 @@ export default function AlbumDetailsPage() {
     <div>
       <div className="my-3 rounded-lg bg-gray-800 p-6">
         <div className="grid grid-cols-2">
-          <div>
-            <img src={image} alt={name} className="w-full rounded-lg" />
-            <h2 className="mt-4 text-2xl font-medium text-white">
-              {name}
+          <div className="grid grid-cols-2">
+            <div>
+              <img src={image} alt={name} className="w-full rounded-lg" />
+              <h2 className="mt-4 text-2xl font-medium text-white">
+                {name}
 
-              <Form
-                onClick={(e) => {
-                  e.preventDefault();
-                  submit(e.currentTarget);
-                }}
-                method="post"
-                className="row-span-1 float-right text-2xl text-white "
-              >
-                <PlayIcon />
-              </Form>
-            </h2>
+                <Form
+                  onClick={(e) => {
+                    e.preventDefault();
+                    submit(e.currentTarget);
+                  }}
+                  method="post"
+                  className="row-span-1 float-right text-2xl text-white "
+                >
+                  <PlayIcon />
+                </Form>
+              </h2>
+            </div>
+            <div>
+              <TrackList submit={submit} tracks={tracks} />
+            </div>
             <p className="text-gray-500">{artist}</p>
           </div>
-          <div>
-            <div className="grid grid-cols-2 text-center ">
-              <TabLink to=".">Tracks</TabLink>
-              <TabLink to="./notes">Notes</TabLink>
-            </div>
-            {outlet ? outlet : <TrackList submit={submit} tracks={tracks} />}
-          </div>
+          <Outlet />
         </div>
       </div>
     </div>

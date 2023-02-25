@@ -1,9 +1,9 @@
 {
-    "name": "Shit 2 Listen 2",
-    "short_name": "S2L2",
-    "theme_color": "#2196f3",
-    "background_color": "#1f2937",
-    "display": "standalone",
-    "scope": "/",
-    "start_url": "/"
-  }
+  "name": "Shit 2 Listen 2",
+  "short_name": "S2L2",
+  "theme_color": "#2196f3",
+  "background_color": "#1f2937",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/"
+}

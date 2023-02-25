@@ -1,6 +1,11 @@
 import type { ActionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useTransition,
+} from "@remix-run/react";
 import * as React from "react";
 import invariant from "tiny-invariant";
 import { marked } from "marked";
@@ -39,7 +44,7 @@ export async function action({ request, params }: ActionArgs) {
     spotifyAlbumId,
   });
 
-  return redirect(`/${params.playlistId}/albums/${params.albumId}`);
+  return redirect(`/${params.playlistId}/albums/${params.albumId}/notes`);
 }
 
 export async function loader({ params, request }) {
@@ -65,6 +70,9 @@ export default function NewNotePage() {
   const ratingRef = React.useRef<HTMLInputElement>(null);
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = React.useState(!data.noteHTML);
+  const transition = useTransition();
+  let isSaving = transition.state === "submitting";
+  let [wasSaving, setWasSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (actionData?.errors?.rating) {
@@ -73,6 +81,13 @@ export default function NewNotePage() {
       bodyRef.current?.focus();
     }
   }, [actionData]);
+
+  React.useEffect(() => {
+    if (wasSaving && !isSaving) {
+      setEditing(false);
+    }
+    setWasSaving(isSaving);
+  }, [isSaving]);
 
   return editing ? (
     <Form
