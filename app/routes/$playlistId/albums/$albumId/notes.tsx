@@ -3,6 +3,7 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import * as React from "react";
 import invariant from "tiny-invariant";
+import { marked } from "marked";
 
 import { upsertNote, getNote } from "~/models/note.server";
 import { spotifyStrategy } from "~/services/auth.server";
@@ -51,7 +52,11 @@ export async function loader({ params, request }) {
     spotifyAlbumId,
   });
 
-  return json(note || { rating: null, body: null });
+  return json(
+    note
+      ? { ...note, noteHTML: marked(note.body) }
+      : { rating: null, body: null, noteHTML: null }
+  );
 }
 
 export default function NewNotePage() {
@@ -59,6 +64,7 @@ export default function NewNotePage() {
   const actionData = useActionData<typeof action>();
   const ratingRef = React.useRef<HTMLInputElement>(null);
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);
+  const isEditing = false;
 
   React.useEffect(() => {
     if (actionData?.errors?.rating) {
@@ -68,7 +74,7 @@ export default function NewNotePage() {
     }
   }, [actionData]);
 
-  return (
+  return isEditing ? (
     <Form
       method="post"
       style={{
@@ -134,5 +140,10 @@ export default function NewNotePage() {
         </button>
       </div>
     </Form>
+  ) : (
+    <article
+      className="prose lg:prose-xl"
+      dangerouslySetInnerHTML={{ __html: data.noteHTML }}
+    />
   );
 }
