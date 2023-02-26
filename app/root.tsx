@@ -101,6 +101,7 @@ export default function App() {
           setPaused(state.paused);
 
           player.getCurrentState().then((state) => {
+            console.log(state);
             !state ? setActive(false) : setActive(true);
           });
         });
@@ -114,8 +115,8 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-gray-900">
-        <div className="relative flex h-screen flex-col">
+      <body className="flex h-full flex-col bg-gray-900">
+        <div className="relative h-screen">
           <Navbar user={user} current_track={current_track}></Navbar>
           <div className="pt-[70px]">
             <Outlet context={[player, deviceId]} />
@@ -138,39 +139,45 @@ const Navbar = ({ user, current_track }) => {
         Shit 2 Listen 2
       </Link>
       {user ? (
-        <div className="relative">
-          <div className="container">
-            <div className="main-wrapper">
-              <img
-                src={current_track.album.images[0].url}
-                className="now-playing__cover"
-                alt=""
-              />
+        <div className="relative ">
+          <div className="inline-block">
+            {current_track.name.length > 0 ? (
+              <div className="main-wrapper grid grid-cols-2">
+                <img
+                  src={current_track.album.images[0].url}
+                  className="now-playing__cover h-8 w-8"
+                  alt=""
+                />
 
-              <div className="now-playing__side">
-                <div className="now-playing__name">{current_track.name}</div>
+                <div className="now-playing__side">
+                  <div className="now-playing__name">{current_track.name}</div>
 
-                <div className="now-playing__artist">
-                  {current_track.artists[0].name}
+                  <div className="now-playing__artist">
+                    {current_track.artists[0].name}
+                  </div>
                 </div>
               </div>
+            ) : (
+              <></>
+            )}
+            <div>
+              <img
+                src={user.image}
+                alt={user.name}
+                className="h-8 w-8 cursor-pointer rounded-full"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              />
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 rounded-lg bg-gray-800 py-2 shadow-xl">
+                  <Form action={"/auth/logout"} method="post">
+                    <button className="block px-4 py-2 font-medium text-white hover:bg-gray-700">
+                      {"Logout"}
+                    </button>
+                  </Form>
+                </div>
+              )}
             </div>
           </div>
-          <img
-            src={user.image}
-            alt={user.name}
-            className="h-8 w-8 cursor-pointer rounded-full"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          />
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 rounded-lg bg-gray-800 py-2 shadow-xl">
-              <Form action={"/auth/logout"} method="post">
-                <button className="block px-4 py-2 font-medium text-white hover:bg-gray-700">
-                  {"Logout"}
-                </button>
-              </Form>
-            </div>
-          )}
         </div>
       ) : (
         <Form action={"/auth/spotify"} method="post">
