@@ -8,6 +8,7 @@ import {
   useCatch,
   useLoaderData,
   useOutlet,
+  useOutletContext,
   useSubmit,
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
@@ -49,6 +50,7 @@ export async function action({ request, params }: ActionArgs) {
   const uris = [];
   const formData = await request.formData();
   const trackId = formData.get("trackId");
+  const deviceId = formData.get("deviceId");
   let thingToPlay = {};
 
   if (trackId) {
@@ -61,15 +63,18 @@ export async function action({ request, params }: ActionArgs) {
     };
   }
 
-  const response = await fetch(`https://api.spotify.com/v1/me/player/play`, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Bearer ${session?.accessToken}`,
-      Accept: "application/json",
-    },
-    method: "PUT",
-    body: JSON.stringify(thingToPlay),
-  });
+  const response = await fetch(
+    `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${session?.accessToken}`,
+        Accept: "application/json",
+      },
+      method: "PUT",
+      body: JSON.stringify(thingToPlay),
+    }
+  );
   if (!response.ok) {
     throw new Error(response.statusText);
   }
@@ -111,11 +116,12 @@ const TabLink = ({ to, children }) => (
   </NavLink>
 );
 
-const TrackList = ({ tracks, submit }) =>
+const TrackList = ({ tracks, submit, player, deviceId }) =>
   tracks.map(({ name, duration_ms, id }) => (
     <Form
       onClick={(e) => {
         e.preventDefault();
+        player.activateElement();
         submit(e.currentTarget);
       }}
       method="post"
@@ -129,6 +135,7 @@ const TrackList = ({ tracks, submit }) =>
         </span>
       </p>
       <input hidden value={id} name="trackId" />
+      <input hidden value={deviceId} name="deviceId" />
     </Form>
   ));
 
@@ -141,6 +148,7 @@ export default function AlbumDetailsPage() {
   const image = data.album?.images[0]?.url;
   const tracks = data.album.tracks.items;
   const outlet = useOutlet();
+  const [player, deviceId] = useOutletContext();
 
   return (
     <div>
@@ -155,21 +163,28 @@ export default function AlbumDetailsPage() {
                 <Form
                   onClick={(e) => {
                     e.preventDefault();
+                    player.activateElement();
                     submit(e.currentTarget);
                   }}
                   method="post"
                   className="row-span-1 float-right text-2xl text-white "
                 >
                   <PlayIcon />
+                  <input hidden value={deviceId} name="deviceId" />
                 </Form>
               </h2>
             </div>
             <div>
-              <TrackList submit={submit} tracks={tracks} />
+              <TrackList
+                submit={submit}
+                tracks={tracks}
+                player={player}
+                deviceId={deviceId}
+              />
             </div>
             <p className="text-gray-500">{artist}</p>
           </div>
-          <Outlet />
+          <Outlet context={[player, deviceId]} />
         </div>
       </div>
     </div>

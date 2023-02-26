@@ -34,6 +34,7 @@ const scopes = [
     'user-read-recently-played',
     'user-library-modify',
     'user-library-read',
+    'user-read-private',
     ].join(' ');
 
 export const spotifyStrategy = new SpotifyStrategy(

@@ -7,6 +7,7 @@ import {
   useCatch,
   useLoaderData,
   useOutlet,
+  useOutletContext,
   useSubmit,
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
@@ -58,6 +59,7 @@ export default function PlaylistDetailsPage() {
   const tracks = data.tracks;
   const albums = [];
   const outlet = useOutlet();
+  const [player, deviceId] = useOutletContext();
 
   tracks
     ?.map((i) => i.track)
@@ -79,7 +81,7 @@ export default function PlaylistDetailsPage() {
           {data.playlist.name}
         </h1>
       </Link>
-      {outlet}
+      <Outlet context={[player, deviceId]} />
       <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
         {albums.map((album) => (
           <Album {...album} />

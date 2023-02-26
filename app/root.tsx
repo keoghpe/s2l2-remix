@@ -1,6 +1,7 @@
 import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
+  Form,
   Link,
   Links,
   LiveReload,
@@ -43,60 +44,69 @@ export async function loader({ request }: LoaderArgs) {
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const user = data?.session?.user;
-  const playerRef = React.useRef(null);
+  const token = data?.session?.accessToken;
 
-  React.useEffect(() => {
-    if (window.Spotify) {
-      const token = data.session.accessToken;
+  const track = {
+    name: "",
+    album: {
+      images: [{ url: "" }],
+    },
+    artists: [{ name: "" }],
+  };
 
-      playerRef.current = new Spotify.Player({
-        name: "Web Playback SDK Quick Start Player",
-        getOAuthToken: (cb) => {
-          cb(token);
-        },
-        volume: 0.5,
-      });
-    }
+  const [player, setPlayer] = React.useState(null);
+  const [deviceId, setDeviceId] = React.useState(null);
+  const [is_paused, setPaused] = React.useState(false);
+  const [is_active, setActive] = React.useState(false);
+  const [current_track, setTrack] = React.useState(track);
 
-    (window as any).onSpotifyWebPlaybackSDKReady = () => {
-      const token = data.session.accessToken;
+  if (token) {
+    React.useEffect(() => {
+      const script = document.createElement("script");
 
-      const player = new Spotify.Player({
-        name: "Web Playback SDK Quick Start Player",
-        getOAuthToken: (cb) => {
-          cb(token);
-        },
-        volume: 0.5,
-      });
+      script.src = "https://sdk.scdn.co/spotify-player.js";
+      script.async = true;
+      document.body.appendChild(script);
 
-      player.addListener("ready", ({ device_id }) => {
-        console.log("Ready with Device ID", device_id);
-      });
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        const splayer = new window.Spotify.Player({
+          name: "S2L2",
+          getOAuthToken: (cb) => {
+            cb(token);
+          },
+          volume: 0.5,
+        });
 
-      player.addListener("initialization_error", ({ message }) => {
-        console.error(message);
-      });
+        setPlayer(splayer);
 
-      player.addListener("authentication_error", ({ message }) => {
-        console.error(message);
-      });
+        splayer.addListener("ready", ({ device_id }) => {
+          console.log("Ready with Device ID", device_id);
+          setDeviceId(device_id);
+        });
 
-      player.addListener("account_error", ({ message }) => {
-        console.error(message);
-      });
+        splayer.addListener("not_ready", ({ device_id }) => {
+          console.log("Device ID has gone offline", device_id);
+        });
 
-      player.connect();
+        splayer.connect();
 
-      playerRef.current = player;
-    };
+        splayer.addListener("player_state_changed", (state) => {
+          console.log("player state changed");
 
-    if (!window.Spotify) {
-      const scriptTag = document.createElement("script");
-      scriptTag.src = "https://sdk.scdn.co/spotify-player.js";
+          if (!state) {
+            return;
+          }
 
-      document.head!.appendChild(scriptTag);
-    }
-  }, []);
+          setTrack(state.track_window.current_track);
+          setPaused(state.paused);
+
+          player.getCurrentState().then((state) => {
+            !state ? setActive(false) : setActive(true);
+          });
+        });
+      };
+    }, [token]);
+  }
 
   return (
     <html lang="en" className="h-full">
@@ -106,9 +116,9 @@ export default function App() {
       </head>
       <body className="h-full bg-gray-900">
         <div className="relative flex h-screen flex-col">
-          <Navbar user={user}></Navbar>
+          <Navbar user={user} current_track={current_track}></Navbar>
           <div className="pt-[70px]">
-            <Outlet />
+            <Outlet context={[player, deviceId]} />
           </div>
         </div>
         <ScrollRestoration />
@@ -119,7 +129,7 @@ export default function App() {
   );
 }
 
-const Navbar = ({ user }) => {
+const Navbar = ({ user, current_track }) => {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   return (
@@ -129,6 +139,23 @@ const Navbar = ({ user }) => {
       </Link>
       {user ? (
         <div className="relative">
+          <div className="container">
+            <div className="main-wrapper">
+              <img
+                src={current_track.album.images[0].url}
+                className="now-playing__cover"
+                alt=""
+              />
+
+              <div className="now-playing__side">
+                <div className="now-playing__name">{current_track.name}</div>
+
+                <div className="now-playing__artist">
+                  {current_track.artists[0].name}
+                </div>
+              </div>
+            </div>
+          </div>
           <img
             src={user.image}
             alt={user.name}
