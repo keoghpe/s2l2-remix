@@ -75,21 +75,10 @@ export async function playThing(
   thingToPlay: {}
 ) {
   const resource = `me/player/play?device_id=${deviceId}`
-  const response = await fetch(
-    `https://api.spotify.com/v1/` + resource,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json",
-      },
-      method: "PUT",
-      body: JSON.stringify(thingToPlay),
-    }
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
+
+  spotifyFetch(
+    resource, accessToken, "PUT", thingToPlay
+  )
 }
 
 export async function fetchAlbum(
@@ -100,7 +89,12 @@ export async function fetchAlbum(
   return await spotifyFetch(resource, accessToken);
 }
 
-async function spotifyFetch(resource: string, accessToken: string) {
+async function spotifyFetch(
+  resource: string,
+  accessToken: string,
+  http_method: "GET" | "PUT" = "GET",
+  body: Object | null = null
+   ) {
   const response = await fetch(
     `https://api.spotify.com/v1/` + resource,
     {
@@ -109,7 +103,8 @@ async function spotifyFetch(resource: string, accessToken: string) {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
       },
-      method: "GET",
+      method: http_method,
+      body: body && JSON.stringify(body),
     }
   )
   if (!response.ok) {
