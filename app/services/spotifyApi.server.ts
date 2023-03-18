@@ -12,22 +12,9 @@ export const fetchPlaylists = async (accessToken: string) => {
   let allPlaylists: SpotifyPlaylist[] = [];
 
   while (fetchMore) {
-    const response = await fetch(
-        `https://api.spotify.com/v1/me/playlists?limit=50&offset=${offset}`,
-        {
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Bearer ${accessToken}`,
-            Accept: "application/json",
-        },
-        method: "GET",
-        }
-    );
-    if (!response.ok) {
-        throw new Error(response.statusText);
-    }
+    const resource = `me/playlists?limit=50&offset=${offset}`
 
-    let playlists = await response.json();
+    let playlists = await spotifyFetch(resource, accessToken)
     allPlaylists = [...allPlaylists, ...playlists.items];
 
     fetchMore = playlists.items.length > 0;
@@ -43,22 +30,8 @@ export const fetchPlaylist = async (accessToken: string, playlistId: string) => 
     tracks: [],
   }
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/playlists/${playlistId}`,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json",
-      },
-      method: "GET",
-    }
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  let playlist = await response.json();
+  const resource = `playlists/${playlistId}`
+  let playlist = await spotifyFetch(resource, accessToken)
 
   data.playlist = {
     id: playlistId,
@@ -69,21 +42,9 @@ export const fetchPlaylist = async (accessToken: string, playlistId: string) => 
   let offset = 0;
 
   while (fetchMore) {
-    const response = await fetch(
-      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50&offset=${offset}`,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-        },
-        method: "GET",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    let tracks = await response.json();
+    const resource = `playlists/${playlistId}/tracks?limit=50&offset=${offset}`
+
+    let tracks = await spotifyFetch(resource, accessToken);
     data.tracks = [...data.tracks, ...tracks.items];
 
     fetchMore = tracks.items.length > 0;
@@ -100,8 +61,9 @@ export async function playThing(
   accessToken: string,
   thingToPlay: {}
 ) {
+  const resource = `me/player/play?device_id=${deviceId}`
   const response = await fetch(
-    `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+    `https://api.spotify.com/v1/` + resource,
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -121,8 +83,13 @@ export async function fetchAlbum(
   albumId: string,
   accessToken: string,
 ) {
+  const resource = `albums/${albumId}`
+  return await spotifyFetch(resource, accessToken);
+}
+
+async function spotifyFetch(resource: string, accessToken: string) {
   const response = await fetch(
-    `https://api.spotify.com/v1/albums/${albumId}`,
+    `https://api.spotify.com/v1/` + resource,
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -131,11 +98,11 @@ export async function fetchAlbum(
       },
       method: "GET",
     }
-  );
+  )
   if (!response.ok) {
-    throw new Error(response.statusText);
-    //     throw new Response("Not Found", { status: 404 });
+    throw new Error(response.statusText)
   }
 
-  return await response.json();
+  const responseJSON = await response.json()
+  return responseJSON
 }
