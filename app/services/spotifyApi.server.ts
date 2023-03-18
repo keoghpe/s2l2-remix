@@ -1,45 +1,43 @@
-export type SpotifyPlaylist = {
+interface HasImages {
+  images: SpotifyImage[]
+}
+
+interface Identifyable {
   id: string
   name: string
-  images: SpotifyImage[]
-  tracks: SpotifyTrack[]
 }
+
+export type SpotifyPlaylist = {
+  tracks: SpotifyTrack[]
+} & Identifyable & HasImages
 
 export type SpotifyImage = {
   url: string
 }
 
-export type SpotifyTrack = {
-  artists: [{
-    name: string
-  }]
-  album: {
-    id: string
-    images: SpotifyImage[]
-  }
-}
+export type SpotifyArtist = Identifyable
+export type SpotifyAlbum = Identifyable & HasImages
 
-export const fetchPlaylists = async (accessToken: string): Promise<SpotifyPlaylist[]> => {
-  return await paginatedSpotifyFetch(`me/playlists`, accessToken);
+export type SpotifyTrack = {
+  artists: SpotifyArtist[] 
+  album: SpotifyAlbum
 }
 
 type PlaylistAndTracks = {
-  playlist: SpotifyPlaylist | null
+  playlist: SpotifyPlaylist
   tracks: SpotifyTrack[]
 }
 
+export const fetchPlaylists = async (accessToken: string): Promise<SpotifyPlaylist[]> => {
+  return await paginatedSpotifyFetch<SpotifyPlaylist>(`me/playlists`, accessToken);
+}
+
 export const fetchPlaylist = async (accessToken: string, playlistId: string): Promise<PlaylistAndTracks> => {
-  let data: PlaylistAndTracks = {
-    playlist: null,
-    tracks: [],
-  }
+  const playlist = await spotifyFetch(`playlists/${playlistId}`, accessToken)
+  const tracks = await paginatedSpotifyFetch<SpotifyTrack>( `playlists/${playlistId}/tracks`, accessToken);
+  tracks.reverse();
 
-  data.playlist = await spotifyFetch(`playlists/${playlistId}`, accessToken)
-  data.tracks = await paginatedSpotifyFetch( `playlists/${playlistId}/tracks`, accessToken);
-
-  data.tracks.reverse();
-
-  return data;
+  return {playlist, tracks};
 }
 
 export async function playThing(
@@ -47,21 +45,18 @@ export async function playThing(
   accessToken: string,
   thingToPlay: {}
 ) {
-  const resource = `me/player/play?device_id=${deviceId}`
-
-  spotifyFetch(resource, accessToken, "PUT", thingToPlay)
+  spotifyFetch( `me/player/play?device_id=${deviceId}`, accessToken, "PUT", thingToPlay)
 }
 
 export async function fetchAlbum(
   albumId: string,
   accessToken: string,
-) {
-  const resource = `albums/${albumId}`
-  return await spotifyFetch(resource, accessToken);
+): Promise<SpotifyAlbum> {
+  return await spotifyFetch(`albums/${albumId}`, accessToken);
 }
 
-async function paginatedSpotifyFetch(resourceToPaginate: string, accessToken: string) {
-  let accumulator = []
+async function paginatedSpotifyFetch<Accumulated>(resourceToPaginate: string, accessToken: string) {
+  let accumulator: Accumulated[] = []
   let fetchMore = true
   let offset = 0
 
