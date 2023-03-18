@@ -10,6 +10,7 @@ import {
   useOutletContext,
   useSubmit,
 } from "@remix-run/react";
+import { User } from "remix-auth-spotify";
 import invariant from "tiny-invariant";
 import { spotifyStrategy } from "~/services/auth.server";
 import { cached } from "~/services/redis.server";
@@ -18,28 +19,19 @@ import { fetchPlaylist, SpotifyTrack } from "~/services/spotifyApi.server";
 export async function loader({ request, params }: LoaderArgs) {
   invariant(params.playlistId, "playlist not found");
 
-  let data: {
-    session: Session | null;
-    tracks: SpotifyTrack[];
-    playlist: Object | null;
-  } = {
-    session: null,
-    tracks: [],
-    playlist: null,
-  };
-  data.session = await spotifyStrategy.getSession(request);
+  const session: Session & { user: User } = await spotifyStrategy.getSession(
+    request
+  );
+  invariant(session, "session is null!");
 
   let { playlist, tracks } = await cached(
-    `playlist:${data.session.user.id}:${params.playlistId}`,
+    `playlist:${session.user.id}:${params.playlistId}`,
     async () => {
-      return await fetchPlaylist(data.session.accessToken, params.playlistId);
+      return await fetchPlaylist(session.accessToken, params.playlistId);
     }
   );
 
-  data.playlist = playlist;
-  data.tracks = tracks;
-
-  return data;
+  return { session, playlist, tracks };
 }
 
 const Album = ({ name, image, id, artist }) => {
