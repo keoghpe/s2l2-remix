@@ -43,7 +43,7 @@ export const fetchPlaylists = async (accessToken: string): Promise<SpotifyPlayli
 
 export const fetchPlaylist = async (accessToken: string, playlistId: string): Promise<PlaylistAndTracks> => {
   const playlist = await spotifyFetch(`playlists/${playlistId}`, accessToken)
-  const tracks = await paginatedSpotifyFetch<SpotifyTrack>( `playlists/${playlistId}/tracks`, accessToken);
+  const tracks = await paginatedSpotifyFetch<SpotifyPlaylistItem>( `playlists/${playlistId}/tracks`, accessToken);
   tracks.reverse();
 
   return {playlist, tracks};
