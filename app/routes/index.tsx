@@ -1,13 +1,13 @@
 import { json, LoaderArgs } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import React from "react";
 
 import { spotifyStrategy } from "~/services/auth.server";
 import { cached } from "~/services/redis.server";
-import { fetchPlaylists } from "~/services/spotifyApi.server";
+import { fetchPlaylists, SpotifyPlaylist } from "~/services/spotifyApi.server";
 
 export async function loader({ request }: LoaderArgs) {
-  let data: { session: Session | null; playlists: Array } = {
+  let data: { session: Session | null; playlists: SpotifyPlaylist[] } = {
     session: null,
     playlists: [],
   };
@@ -26,7 +26,11 @@ export async function loader({ request }: LoaderArgs) {
   return json(data);
 }
 
-const Playlist = ({ name, image, id }) => {
+type PlaylistPreviewProps = Omit<SpotifyPlaylist, "images"> & {
+  image: string;
+};
+
+const PlaylistPreview = ({ name, image, id }: PlaylistPreviewProps) => {
   return (
     <Link to={`/${id}`}>
       <div className="grid grid-cols-4 items-center gap-4 rounded-lg bg-gray-800 p-6 hover:bg-gray-700">
@@ -36,6 +40,14 @@ const Playlist = ({ name, image, id }) => {
     </Link>
   );
 };
+
+const PlaylistGrid: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
+    {children}
+  </div>
+);
 
 export default function Index() {
   const data = useLoaderData<typeof loader>();
@@ -51,10 +63,10 @@ export default function Index() {
     : [];
 
   return (
-    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
+    <PlaylistGrid>
       {playlists.map((playlist) => (
-        <Playlist {...playlist} />
+        <PlaylistPreview {...playlist} />
       ))}
-    </div>
+    </PlaylistGrid>
   );
 }

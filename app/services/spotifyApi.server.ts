@@ -1,7 +1,15 @@
+export type SpotifyPlaylist = {
+  id: string
+  name: string
+  images: Array<{
+    url: string
+  }>
+}
+
 export const fetchPlaylists = async (accessToken: string) => {
   let fetchMore = true;
   let offset = 0;
-  let allPlaylists = [];
+  let allPlaylists: SpotifyPlaylist[] = [];
 
   while (fetchMore) {
     const response = await fetch(
@@ -85,4 +93,49 @@ export const fetchPlaylist = async (accessToken: string, playlistId: string) => 
   data.tracks.reverse();
 
   return data;
+}
+
+export async function playThing(
+  deviceId: FormDataEntryValue | null,
+  accessToken: string,
+  thingToPlay: {}
+) {
+  const response = await fetch(
+    `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+      method: "PUT",
+      body: JSON.stringify(thingToPlay),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+}
+
+export async function fetchAlbum(
+  albumId: string,
+  accessToken: string,
+) {
+  const response = await fetch(
+    `https://api.spotify.com/v1/albums/${albumId}`,
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+      method: "GET",
+    }
+  );
+  if (!response.ok) {
+    throw new Error(response.statusText);
+    //     throw new Response("Not Found", { status: 404 });
+  }
+
+  return await response.json();
 }

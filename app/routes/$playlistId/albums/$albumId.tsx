@@ -13,6 +13,7 @@ import {
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { spotifyStrategy } from "~/services/auth.server";
+import { fetchAlbum } from "~/services/spotifyApi.server";
 
 export async function loader({ request, params }: LoaderArgs) {
   invariant(params.playlistId, "noteId not found");
@@ -23,23 +24,9 @@ export async function loader({ request, params }: LoaderArgs) {
   };
   data.session = await spotifyStrategy.getSession(request);
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/albums/${params.albumId}`,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${data?.session?.accessToken}`,
-        Accept: "application/json",
-      },
-      method: "GET",
-    }
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-    //     throw new Response("Not Found", { status: 404 });
-  }
+  let result = await fetchAlbum(params.albumId, data.session.accessToken);
 
-  data.album = await response.json();
+  data.album = result;
 
   return data;
 }
@@ -63,21 +50,7 @@ export async function action({ request, params }: ActionArgs) {
     };
   }
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${session?.accessToken}`,
-        Accept: "application/json",
-      },
-      method: "PUT",
-      body: JSON.stringify(thingToPlay),
-    }
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
+  await playThing(deviceId, session?.accessToken, thingToPlay);
 
   return redirect(`/${params.playlistId}/albums/${params.albumId}/notes`);
 }
