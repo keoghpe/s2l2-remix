@@ -122,8 +122,10 @@ async function spotifyFetch(
   try {
     let parsedResponse = await response.json()
 
-    await REDIS_CLIENT.set(cacheKey, JSON.stringify(parsedResponse));
-    await REDIS_CLIENT.expire(cacheKey, 3600);
+    if(canCache) {
+      await REDIS_CLIENT.set(cacheKey, JSON.stringify(parsedResponse));
+      await REDIS_CLIENT.expire(cacheKey, 3600);
+    }
 
     return parsedResponse;
 

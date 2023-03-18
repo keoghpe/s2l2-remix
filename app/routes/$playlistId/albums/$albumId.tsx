@@ -73,8 +73,8 @@ const TrackList = ({ tracks, submit, player, deviceId }) =>
           {Math.round((duration_ms / 1000) % 60)}
         </span>
       </p>
-      <input hidden value={id} name="trackId" />
-      <input hidden value={deviceId} name="deviceId" />
+      <input hidden value={id} name="trackId" readOnly />
+      <input hidden value={deviceId} name="deviceId" readOnly />
     </Form>
   ));
 
@@ -107,7 +107,9 @@ export default function AlbumDetailsPage() {
                   className="row-span-1 float-right text-2xl text-white "
                 >
                   <PlayIcon />
-                  <input hidden value={deviceId} name="deviceId" />
+                  {deviceId && (
+                    <input hidden value={deviceId} name="deviceId" readOnly />
+                  )}
                 </Form>
               </h2>
             </div>
