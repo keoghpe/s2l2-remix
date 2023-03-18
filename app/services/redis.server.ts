@@ -11,7 +11,7 @@ const KEY_VERSION = "1";
 
 client.connect();
 
-export const cached = async (cacheKey, callback) => {
+export async function cached<T>(cacheKey: string, callback: () => T): Promise<T> {
 
   let cachedData = await client.get(cacheKey);
 

@@ -12,9 +12,15 @@ import {
 } from "@remix-run/react";
 import { User } from "remix-auth-spotify";
 import invariant from "tiny-invariant";
+import { AlbumTile } from "~/components/AlbumTile";
 import { spotifyStrategy } from "~/services/auth.server";
 import { cached } from "~/services/redis.server";
-import { fetchPlaylist, SpotifyTrack } from "~/services/spotifyApi.server";
+import {
+  fetchPlaylist,
+  SpotifyAlbum,
+  SpotifyPlaylistItem,
+  SpotifyTrack,
+} from "~/services/spotifyApi.server";
 
 export async function loader({ request, params }: LoaderArgs) {
   invariant(params.playlistId, "playlist not found");
@@ -26,57 +32,41 @@ export async function loader({ request, params }: LoaderArgs) {
 
   let { playlist, tracks } = await cached(
     `playlist:${session.user.id}:${params.playlistId}`,
-    async () => {
-      return await fetchPlaylist(session.accessToken, params.playlistId);
-    }
+    async () => await fetchPlaylist(session.accessToken, params.playlistId)
   );
 
   return { session, playlist, tracks };
 }
 
-const Album = ({ name, image, id, artist }) => {
-  return (
-    <Link to={`./albums/${id}/notes`}>
-      <div className="rounded-lg bg-gray-800 p-6">
-        <img src={image} alt={name} className="w-full rounded-lg" />
-        <h2 className="mt-4 text-2xl font-medium text-white">{name}</h2>
-        <p className="text-gray-500">{artist}</p>
-      </div>
-    </Link>
-  );
-};
-
-export default function PlaylistDetailsPage() {
-  const data = useLoaderData<typeof loader>();
-  const tracks = data.tracks;
-  const albums = [];
-  const outlet = useOutlet();
-  const [player, deviceId] = useOutletContext();
+const extractAlbums = (tracks: SpotifyPlaylistItem[]): SpotifyAlbum[] => {
+  const albums: SpotifyAlbum[] = [];
 
   tracks
-    ?.map((i) => i.track)
+    .map((i) => i.track)
     .forEach((t) => {
       if (!albums.find((a) => a.id === t.album.id)) {
-        albums.push({
-          name: t.album?.name,
-          id: t.album?.id,
-          artist: t.album?.artists[0]?.name,
-          image: t.album?.images[0]?.url,
-        });
+        albums.push(t.album);
       }
     });
 
+  return albums;
+};
+
+export default function PlaylistDetailsPage() {
+  const { playlist, tracks } = useLoaderData<typeof loader>();
+  const [player, deviceId] = useOutletContext();
+
   return (
     <div>
-      <Link to={`/${data.playlist.id}`}>
+      <Link to={`/${playlist.id}`}>
         <h1 className="my-5 text-center text-3xl text-white">
-          {data.playlist.name}
+          {playlist.name}
         </h1>
       </Link>
       <Outlet context={[player, deviceId]} />
       <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
-        {albums.map((album) => (
-          <Album {...album} />
+        {extractAlbums(tracks).map((album) => (
+          <AlbumTile {...{ album }} />
         ))}
       </div>
     </div>

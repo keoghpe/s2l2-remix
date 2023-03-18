@@ -7,8 +7,12 @@ interface Identifyable {
   name: string
 }
 
+export type SpotifyPlaylistItem = {
+  track: SpotifyTrack
+}
+
 export type SpotifyPlaylist = {
-  tracks: SpotifyTrack[]
+  items: SpotifyPlaylistItem[]
 } & Identifyable & HasImages
 
 export type SpotifyImage = {
@@ -30,7 +34,7 @@ export type SpotifyTrack = {
 
 type PlaylistAndTracks = {
   playlist: SpotifyPlaylist
-  tracks: SpotifyTrack[]
+  tracks: SpotifyPlaylistItem[]
 }
 
 export const fetchPlaylists = async (accessToken: string): Promise<SpotifyPlaylist[]> => {
@@ -71,7 +75,7 @@ async function paginatedSpotifyFetch<Accumulated>(resourceToPaginate: string, ac
     let spotifyResponse = await spotifyFetch(resource, accessToken)
     accumulator = [...accumulator, ...spotifyResponse.items]
 
-    fetchMore = spotifyResponse.items.length > 0
+    fetchMore = spotifyResponse.items.length === 50
     offset += 50
   }
   return accumulator
