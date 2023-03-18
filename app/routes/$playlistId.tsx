@@ -13,14 +13,14 @@ import {
 import invariant from "tiny-invariant";
 import { spotifyStrategy } from "~/services/auth.server";
 import { cached } from "~/services/redis.server";
-import { fetchPlaylist } from "~/services/spotifyApi.server";
+import { fetchPlaylist, SpotifyTrack } from "~/services/spotifyApi.server";
 
 export async function loader({ request, params }: LoaderArgs) {
   invariant(params.playlistId, "playlist not found");
 
   let data: {
     session: Session | null;
-    tracks: Array;
+    tracks: SpotifyTrack[];
     playlist: Object | null;
   } = {
     session: null,

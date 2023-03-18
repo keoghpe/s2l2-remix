@@ -1,12 +1,25 @@
 export type SpotifyPlaylist = {
   id: string
   name: string
-  images: Array<{
-    url: string
-  }>
+  images: SpotifyImage[]
+  tracks: SpotifyTrack[]
 }
 
-export const fetchPlaylists = async (accessToken: string) => {
+export type SpotifyImage = {
+  url: string
+}
+
+export type SpotifyTrack = {
+  artists: [{
+    name: string
+  }]
+  album: {
+    id: string
+    images: SpotifyImage[]
+  }
+}
+
+export const fetchPlaylists = async (accessToken: string): Promise<SpotifyPlaylist[]> => {
   let fetchMore = true;
   let offset = 0;
   let allPlaylists: SpotifyPlaylist[] = [];
@@ -24,19 +37,19 @@ export const fetchPlaylists = async (accessToken: string) => {
   return allPlaylists;
 }
 
-export const fetchPlaylist = async (accessToken: string, playlistId: string) => {
-  let data = {
-    playlist: {},
+type PlaylistAndTracks = {
+  playlist: SpotifyPlaylist | null
+  tracks: SpotifyTrack[]
+}
+
+export const fetchPlaylist = async (accessToken: string, playlistId: string): Promise<PlaylistAndTracks> => {
+  let data: PlaylistAndTracks = {
+    playlist: null,
     tracks: [],
   }
 
   const resource = `playlists/${playlistId}`
-  let playlist = await spotifyFetch(resource, accessToken)
-
-  data.playlist = {
-    id: playlistId,
-    name: playlist.name,
-  }
+  data.playlist = await spotifyFetch(resource, accessToken)
 
   let fetchMore = true;
   let offset = 0;
