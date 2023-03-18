@@ -26,3 +26,5 @@ export async function cached<T>(cacheKey: string, callback: () => T): Promise<T>
     return results;
   }
 };
+
+export const REDIS_CLIENT = client;

@@ -14,7 +14,6 @@ import { User } from "remix-auth-spotify";
 import invariant from "tiny-invariant";
 import { AlbumTile } from "~/components/AlbumTile";
 import { spotifyStrategy } from "~/services/auth.server";
-import { cached } from "~/services/redis.server";
 import {
   fetchPlaylist,
   SpotifyAlbum,
@@ -30,9 +29,9 @@ export async function loader({ request, params }: LoaderArgs) {
   );
   invariant(session, "session is null!");
 
-  let { playlist, tracks } = await cached(
-    `playlist:${session.user.id}:${params.playlistId}`,
-    async () => await fetchPlaylist(session.accessToken, params.playlistId)
+  let { playlist, tracks } = await fetchPlaylist(
+    session.accessToken,
+    params.playlistId
   );
 
   return { session, playlist, tracks };

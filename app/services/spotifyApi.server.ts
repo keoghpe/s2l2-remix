@@ -1,3 +1,6 @@
+import { access } from "fs"
+import { REDIS_CLIENT } from "./redis.server"
+
 interface HasImages {
   images: SpotifyImage[]
 }
@@ -87,6 +90,18 @@ async function spotifyFetch(
   http_method: "GET" | "PUT" = "GET",
   body: Object | null = null
    ) {
+
+  const canCache = http_method === "GET";
+  const cacheKey = `${accessToken}:${resource}`
+
+  if(canCache) {
+    let cachedData = await REDIS_CLIENT.get(cacheKey);
+
+    if(cachedData) {
+      return JSON.parse(cachedData)
+    }
+  }
+
   const response = await fetch(
     `https://api.spotify.com/v1/` + resource,
     {
@@ -99,12 +114,19 @@ async function spotifyFetch(
       body: body && JSON.stringify(body),
     }
   )
+
   if (!response.ok) {
     throw new Error(response.statusText)
   }
 
   try {
-    return await response.json()
+    let parsedResponse = await response.json()
+
+    await REDIS_CLIENT.set(cacheKey, JSON.stringify(parsedResponse));
+    await REDIS_CLIENT.expire(cacheKey, 3600);
+
+    return parsedResponse;
+
   } catch {
     // rescue calling .json on empty body!
     return {}

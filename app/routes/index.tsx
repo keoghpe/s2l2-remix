@@ -5,7 +5,6 @@ import PlaylistGrid from "~/components/PlaylistGrid";
 import PlaylistPreview from "~/components/PlaylistPreview";
 
 import { spotifyStrategy } from "~/services/auth.server";
-import { cached } from "~/services/redis.server";
 import { fetchPlaylists, SpotifyPlaylist } from "~/services/spotifyApi.server";
 
 export async function loader({ request }: LoaderArgs) {
@@ -17,13 +16,8 @@ export async function loader({ request }: LoaderArgs) {
   data.session = await spotifyStrategy.getSession(request);
 
   if (data.session?.user) {
-    data.playlists = await cached(
-      `playlists:${data.session.user.id}`,
-      async () => {
-        const playlists = await fetchPlaylists(data.session.accessToken);
-        return playlists.filter(({ name }) => /s2l2/i.test(name));
-      }
-    );
+    const playlists = await fetchPlaylists(data.session.accessToken);
+    data.playlists = playlists.filter(({ name }) => /s2l2/i.test(name));
   }
 
   return json(data);
