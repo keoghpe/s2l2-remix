@@ -12,29 +12,29 @@ import {
   useSubmit,
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
+import PlayIcon from "~/components/PlayIcon";
 import { spotifyStrategy } from "~/services/auth.server";
-import { fetchAlbum } from "~/services/spotifyApi.server";
+import { fetchAlbum, playThing } from "~/services/spotifyApi.server";
 
 export async function loader({ request, params }: LoaderArgs) {
-  invariant(params.playlistId, "noteId not found");
+  invariant(params.playlistId, "playlist not found");
+  invariant(params.albumId, "album not found");
 
-  let data: { session: Session | null; album: Array } = {
-    session: null,
-    album: {},
+  let session = await spotifyStrategy.getSession(request);
+  invariant(session, "session not present");
+
+  let album = await fetchAlbum(params.albumId, session.accessToken);
+
+  return {
+    session,
+    album,
   };
-  data.session = await spotifyStrategy.getSession(request);
-
-  let result = await fetchAlbum(params.albumId, data.session.accessToken);
-
-  data.album = result;
-
-  return data;
 }
 
 export async function action({ request, params }: ActionArgs) {
   let session = await spotifyStrategy.getSession(request);
+  invariant(session, "session not present");
 
-  const uris = [];
   const formData = await request.formData();
   const trackId = formData.get("trackId");
   const deviceId = formData.get("deviceId");
@@ -50,44 +50,10 @@ export async function action({ request, params }: ActionArgs) {
     };
   }
 
-  await playThing(deviceId, session?.accessToken, thingToPlay);
+  await playThing(deviceId, session.accessToken, thingToPlay);
 
   return redirect(`/${params.playlistId}/albums/${params.albumId}/notes`);
 }
-
-const PlayIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="mx-1 h-9 w-9"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z"
-    />
-  </svg>
-);
-
-const TabLink = ({ to, children }) => (
-  <NavLink
-    className={({ isActive }) => {
-      const additional = isActive ? "text-orange-600" : "";
-      return `${additional} cursor-pointer p-5 text-white hover:bg-white hover:bg-opacity-10`;
-    }}
-    to={to}
-  >
-    {children}
-  </NavLink>
-);
 
 const TrackList = ({ tracks, submit, player, deviceId }) =>
   tracks.map(({ name, duration_ms, id }) => (
@@ -113,14 +79,12 @@ const TrackList = ({ tracks, submit, player, deviceId }) =>
   ));
 
 export default function AlbumDetailsPage() {
-  const data = useLoaderData<typeof loader>();
+  const { album } = useLoaderData<typeof loader>();
   const submit = useSubmit();
-  const name = data.album?.name;
-  const id = data.album?.id;
-  const artist = data.album?.artists[0]?.name;
-  const image = data.album?.images[0]?.url;
-  const tracks = data.album.tracks.items;
-  const outlet = useOutlet();
+  const name = album.name;
+  const artist = album.artists[0]?.name;
+  const image = album.images[0]?.url;
+  const tracks = album.tracks.items;
   const [player, deviceId] = useOutletContext();
 
   return (

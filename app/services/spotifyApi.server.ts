@@ -16,7 +16,12 @@ export type SpotifyImage = {
 }
 
 export type SpotifyArtist = Identifyable
-export type SpotifyAlbum = Identifyable & HasImages
+export type SpotifyAlbum = Identifyable & HasImages & {
+  tracks: {
+    items: SpotifyTrack[]
+  },
+  artists: SpotifyArtist[]
+}
 
 export type SpotifyTrack = {
   artists: SpotifyArtist[] 

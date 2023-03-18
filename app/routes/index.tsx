@@ -26,20 +26,18 @@ export async function loader({ request }: LoaderArgs) {
   return json(data);
 }
 
-type PlaylistPreviewProps = Omit<SpotifyPlaylist, "images"> & {
+type PlaylistPreviewProps = Omit<SpotifyPlaylist, "images" | "tracks"> & {
   image: string;
 };
 
-const PlaylistPreview = ({ name, image, id }: PlaylistPreviewProps) => {
-  return (
-    <Link to={`/${id}`}>
-      <div className="grid grid-cols-4 items-center gap-4 rounded-lg bg-gray-800 p-6 hover:bg-gray-700">
-        <img src={image} alt={name} className="rounded-md" />
-        <h2 className="col-span-3 text-2xl font-medium text-white">{name}</h2>
-      </div>
-    </Link>
-  );
-};
+const PlaylistPreview = ({ name, image, id }: PlaylistPreviewProps) => (
+  <Link to={`/${id}`}>
+    <div className="grid grid-cols-4 items-center gap-4 rounded-lg bg-gray-800 p-6 hover:bg-gray-700">
+      <img src={image} alt={name} className="rounded-md" />
+      <h2 className="col-span-3 text-2xl font-medium text-white">{name}</h2>
+    </div>
+  </Link>
+);
 
 const PlaylistGrid: React.FC<{ children: React.ReactNode }> = ({
   children,
