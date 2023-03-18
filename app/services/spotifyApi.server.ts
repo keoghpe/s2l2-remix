@@ -20,21 +20,7 @@ export type SpotifyTrack = {
 }
 
 export const fetchPlaylists = async (accessToken: string): Promise<SpotifyPlaylist[]> => {
-  let fetchMore = true;
-  let offset = 0;
-  let allPlaylists: SpotifyPlaylist[] = [];
-
-  while (fetchMore) {
-    const resource = `me/playlists?limit=50&offset=${offset}`
-
-    let playlists = await spotifyFetch(resource, accessToken)
-    allPlaylists = [...allPlaylists, ...playlists.items];
-
-    fetchMore = playlists.items.length > 0;
-    offset += 50;
-  }
-
-  return allPlaylists;
+  return await paginatedSpotifyFetch(`me/playlists`, accessToken);
 }
 
 type PlaylistAndTracks = {
@@ -48,21 +34,8 @@ export const fetchPlaylist = async (accessToken: string, playlistId: string): Pr
     tracks: [],
   }
 
-  const resource = `playlists/${playlistId}`
-  data.playlist = await spotifyFetch(resource, accessToken)
-
-  let fetchMore = true;
-  let offset = 0;
-
-  while (fetchMore) {
-    const resource = `playlists/${playlistId}/tracks?limit=50&offset=${offset}`
-
-    let tracks = await spotifyFetch(resource, accessToken);
-    data.tracks = [...data.tracks, ...tracks.items];
-
-    fetchMore = tracks.items.length > 0;
-    offset += 50;
-  }
+  data.playlist = await spotifyFetch(`playlists/${playlistId}`, accessToken)
+  data.tracks = await paginatedSpotifyFetch( `playlists/${playlistId}/tracks`, accessToken);
 
   data.tracks.reverse();
 
@@ -76,9 +49,7 @@ export async function playThing(
 ) {
   const resource = `me/player/play?device_id=${deviceId}`
 
-  spotifyFetch(
-    resource, accessToken, "PUT", thingToPlay
-  )
+  spotifyFetch(resource, accessToken, "PUT", thingToPlay)
 }
 
 export async function fetchAlbum(
@@ -87,6 +58,23 @@ export async function fetchAlbum(
 ) {
   const resource = `albums/${albumId}`
   return await spotifyFetch(resource, accessToken);
+}
+
+async function paginatedSpotifyFetch(resourceToPaginate: string, accessToken: string) {
+  let accumulator = []
+  let fetchMore = true
+  let offset = 0
+
+  while (fetchMore) {
+    const resource = resourceToPaginate + `?limit=50&offset=${offset}`
+
+    let spotifyResponse = await spotifyFetch(resource, accessToken)
+    accumulator = [...accumulator, ...spotifyResponse.items]
+
+    fetchMore = spotifyResponse.items.length > 0
+    offset += 50
+  }
+  return accumulator
 }
 
 async function spotifyFetch(
@@ -111,6 +99,5 @@ async function spotifyFetch(
     throw new Error(response.statusText)
   }
 
-  const responseJSON = await response.json()
-  return responseJSON
+  return await response.json()
 }
