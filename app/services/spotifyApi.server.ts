@@ -103,7 +103,12 @@ async function spotifyFetch(
     throw new Error(response.statusText)
   }
 
-  return await response.json()
+  try {
+    return await response.json()
+  } catch {
+    // rescue calling .json on empty body!
+    return {}
+  }
 }
 
 // HOW CAN I DO NONSENSE LIKE THIS???
