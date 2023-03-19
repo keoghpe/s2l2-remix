@@ -13,6 +13,8 @@ import {
   useRouteLoaderData,
 } from "@remix-run/react";
 import React, { useEffect } from "react";
+import PauseIcon from "./components/PauseIcon";
+import PlayIcon from "./components/PlayIcon";
 import { spotifyStrategy } from "./services/auth.server";
 
 // import { getUser } from "./session.server";
@@ -121,6 +123,7 @@ export default function App() {
           <div className="pt-[70px]">
             <Outlet context={[player, deviceId]} />
           </div>
+          <BottomPlayer paused />
         </div>
         <ScrollRestoration />
         <Scripts />
@@ -129,6 +132,35 @@ export default function App() {
     </html>
   );
 }
+
+const BottomPlayer = ({ paused }) => (
+  <div className="fixed bottom-0 w-full bg-green-200">
+    <div className="flex p-4">
+      {paused ? (
+        <PauseIcon className="h-10 w-10 p-1" />
+      ) : (
+        <PlayIcon className="h-10 w-10 p-1" />
+      )}
+
+      <img
+        src="https://i.scdn.co/image/ab67616d0000b27394a64d171a5ed60cd2321a40"
+        className="now-playing__cover h-12 w-12"
+        alt=""
+      />
+
+      <div className="pl-4">
+        <h3>The Scratch</h3>
+        <h4>Old Dog &#x2022; The Whole Buzz</h4>
+      </div>
+    </div>
+    <div className="h-4 w-full bg-gray-900">
+      <div
+        className="h-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+        style={{ width: "80%" }}
+      ></div>
+    </div>
+  </div>
+);
 
 const Navbar = ({ user, current_track }) => {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);

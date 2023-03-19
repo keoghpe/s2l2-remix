@@ -5,7 +5,7 @@ export default () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className="mx-1 h-9 w-9"
+    {...{ className }}
   >
     <path
       strokeLinecap="round"
