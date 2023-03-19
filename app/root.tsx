@@ -59,8 +59,9 @@ export default function App() {
   const [player, setPlayer] = React.useState(null);
   const [deviceId, setDeviceId] = React.useState(null);
   const [is_paused, setPaused] = React.useState(false);
-  const [is_active, setActive] = React.useState(false);
   const [current_track, setTrack] = React.useState(track);
+  const [position, setPosition] = React.useState(0);
+  const [duration, setDuration] = React.useState(100);
 
   if (token) {
     React.useEffect(() => {
@@ -93,20 +94,32 @@ export default function App() {
         splayer.connect();
 
         splayer.addListener("player_state_changed", (state) => {
-          console.log("player state changed");
+          console.log(`player state changed: ${JSON.stringify(state)}`);
 
           if (!state) {
             return;
           }
 
           setTrack(state.track_window.current_track);
+          setPosition(state.position);
+          setDuration(state.duration);
           setPaused(state.paused);
-
-          player.getCurrentState().then((state) => {
-            console.log(state);
-            !state ? setActive(false) : setActive(true);
-          });
         });
+
+        setInterval(() => {
+          splayer.getCurrentState().then((state) => {
+            console.log(`player state changed: ${JSON.stringify(state)}`);
+
+            if (!state) {
+              return;
+            }
+
+            setTrack(state.track_window.current_track);
+            setPosition(state.position);
+            setDuration(state.duration);
+            setPaused(state.paused);
+          });
+        }, 100);
       };
     }, [token]);
   }
@@ -123,7 +136,7 @@ export default function App() {
           <div className="pt-[70px]">
             <Outlet context={[player, deviceId]} />
           </div>
-          <BottomPlayer paused current_track={current_track} />
+          <BottomPlayer paused {...{ current_track, position, duration }} />
         </div>
         <ScrollRestoration />
         <Scripts />
@@ -133,7 +146,7 @@ export default function App() {
   );
 }
 
-const BottomPlayer = ({ paused, current_track }) => {
+const BottomPlayer = ({ paused, current_track, position, duration }) => {
   return current_track.name.length > 0 ? (
     <div className="fixed bottom-0 w-full bg-green-200">
       <div className="flex p-4">
@@ -159,7 +172,7 @@ const BottomPlayer = ({ paused, current_track }) => {
       <div className="h-4 w-full bg-gray-900">
         <div
           className="h-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
-          style={{ width: "80%" }}
+          style={{ width: `${(position / duration) * 100}%` }}
         ></div>
       </div>
     </div>
