@@ -96,7 +96,7 @@ export default function App() {
         splayer.connect();
 
         splayer.addListener("player_state_changed", (state) => {
-          console.log(`player state changed: ${JSON.stringify(state)}`);
+          // console.log(`player state changed: ${JSON.stringify(state)}`);
 
           if (!state) {
             return;
@@ -110,7 +110,7 @@ export default function App() {
 
         setInterval(() => {
           splayer.getCurrentState().then((state) => {
-            console.log(`player state changed: ${JSON.stringify(state)}`);
+            // console.log(`player state changed: ${JSON.stringify(state)}`);
 
             if (!state) {
               return;
@@ -135,12 +135,13 @@ export default function App() {
       <body className="flex h-full flex-col bg-gray-900">
         <div className="relative h-screen">
           <Navbar user={user} current_track={current_track}></Navbar>
-          <div className="pt-[70px]">
+          <div className="pt-[70px] pb-[80px]">
             <Outlet context={[player, deviceId]} />
           </div>
           <BottomPlayer
             {...{ paused, current_track, position, duration }}
             toggle={() => splayer.togglePlay()}
+            jumpTo={(t) => splayer.seek(t)}
           />
         </div>
         <ScrollRestoration />
@@ -157,6 +158,7 @@ const BottomPlayer = ({
   position,
   duration,
   toggle,
+  jumpTo,
 }) => {
   return current_track.name.length > 0 ? (
     <div className="fixed bottom-0 w-full bg-green-200">
@@ -182,7 +184,12 @@ const BottomPlayer = ({
           </h4>
         </div>
       </div>
-      <div className="h-4 w-full bg-gray-900">
+      <div
+        className="h-4 w-full bg-gray-900"
+        onClick={(event) => {
+          jumpTo((event.clientX / window.innerWidth) * duration);
+        }}
+      >
         <div
           className="h-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
           style={{ width: `${(position / duration) * 100}%` }}

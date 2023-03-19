@@ -70,7 +70,9 @@ const TrackList = ({ tracks, submit, player, deviceId }) =>
         {name}
         <span className="float-right text-right">
           {Math.floor(duration_ms / 60 / 1000)}:
-          {Math.round((duration_ms / 1000) % 60)}
+          {Math.round((duration_ms / 1000) % 60)
+            .toString()
+            .padStart(2, "0")}
         </span>
       </p>
       <input hidden value={id} name="trackId" readOnly />
