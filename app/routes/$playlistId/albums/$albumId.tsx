@@ -106,7 +106,7 @@ export default function AlbumDetailsPage() {
                   method="post"
                   className="row-span-1 float-right text-2xl text-white "
                 >
-                  <PlayIcon />
+                  <PlayIcon className="h-10 w-10" />
                   {deviceId && (
                     <input hidden value={deviceId} name="deviceId" readOnly />
                   )}

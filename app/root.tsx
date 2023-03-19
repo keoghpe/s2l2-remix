@@ -123,7 +123,7 @@ export default function App() {
           <div className="pt-[70px]">
             <Outlet context={[player, deviceId]} />
           </div>
-          <BottomPlayer paused />
+          <BottomPlayer paused current_track={current_track} />
         </div>
         <ScrollRestoration />
         <Scripts />
@@ -133,34 +133,40 @@ export default function App() {
   );
 }
 
-const BottomPlayer = ({ paused }) => (
-  <div className="fixed bottom-0 w-full bg-green-200">
-    <div className="flex p-4">
-      {paused ? (
-        <PauseIcon className="h-10 w-10 p-1" />
-      ) : (
-        <PlayIcon className="h-10 w-10 p-1" />
-      )}
+const BottomPlayer = ({ paused, current_track }) => {
+  return current_track.name.length > 0 ? (
+    <div className="fixed bottom-0 w-full bg-green-200">
+      <div className="flex p-4">
+        {paused ? (
+          <PauseIcon className="m-1 h-10 w-10" />
+        ) : (
+          <PlayIcon className="m-1 h-10 w-10" />
+        )}
 
-      <img
-        src="https://i.scdn.co/image/ab67616d0000b27394a64d171a5ed60cd2321a40"
-        className="now-playing__cover h-12 w-12"
-        alt=""
-      />
+        <img
+          src={current_track.album.images[0].url}
+          className="now-playing__cover h-12 w-12"
+          alt=""
+        />
 
-      <div className="pl-4">
-        <h3>The Scratch</h3>
-        <h4>Old Dog &#x2022; The Whole Buzz</h4>
+        <div className="pl-4">
+          <h3>{current_track.name}</h3>
+          <h4>
+            {current_track.artists[0].name} &#x2022; {current_track.album.name}
+          </h4>
+        </div>
+      </div>
+      <div className="h-4 w-full bg-gray-900">
+        <div
+          className="h-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+          style={{ width: "80%" }}
+        ></div>
       </div>
     </div>
-    <div className="h-4 w-full bg-gray-900">
-      <div
-        className="h-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
-        style={{ width: "80%" }}
-      ></div>
-    </div>
-  </div>
-);
+  ) : (
+    <></>
+  );
+};
 
 const Navbar = ({ user, current_track }) => {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -173,25 +179,6 @@ const Navbar = ({ user, current_track }) => {
       {user ? (
         <div className="relative ">
           <div className="inline-block">
-            {current_track.name.length > 0 ? (
-              <div className="main-wrapper grid grid-cols-2">
-                <img
-                  src={current_track.album.images[0].url}
-                  className="now-playing__cover h-8 w-8"
-                  alt=""
-                />
-
-                <div className="now-playing__side">
-                  <div className="now-playing__name">{current_track.name}</div>
-
-                  <div className="now-playing__artist">
-                    {current_track.artists[0].name}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <></>
-            )}
             <div>
               <img
                 src={user.image}
