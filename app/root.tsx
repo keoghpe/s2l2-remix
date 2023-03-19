@@ -43,6 +43,8 @@ export async function loader({ request }: LoaderArgs) {
   return json(data);
 }
 
+let splayer;
+
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const user = data?.session?.user;
@@ -58,7 +60,7 @@ export default function App() {
 
   const [player, setPlayer] = React.useState(null);
   const [deviceId, setDeviceId] = React.useState(null);
-  const [is_paused, setPaused] = React.useState(false);
+  const [paused, setPaused] = React.useState(false);
   const [current_track, setTrack] = React.useState(track);
   const [position, setPosition] = React.useState(0);
   const [duration, setDuration] = React.useState(100);
@@ -72,7 +74,7 @@ export default function App() {
       document.body.appendChild(script);
 
       window.onSpotifyWebPlaybackSDKReady = () => {
-        const splayer = new window.Spotify.Player({
+        splayer = new window.Spotify.Player({
           name: "S2L2",
           getOAuthToken: (cb) => {
             cb(token);
@@ -136,7 +138,10 @@ export default function App() {
           <div className="pt-[70px]">
             <Outlet context={[player, deviceId]} />
           </div>
-          <BottomPlayer paused {...{ current_track, position, duration }} />
+          <BottomPlayer
+            {...{ paused, current_track, position, duration }}
+            toggle={() => splayer.togglePlay()}
+          />
         </div>
         <ScrollRestoration />
         <Scripts />
@@ -146,15 +151,23 @@ export default function App() {
   );
 }
 
-const BottomPlayer = ({ paused, current_track, position, duration }) => {
+const BottomPlayer = ({
+  paused,
+  current_track,
+  position,
+  duration,
+  toggle,
+}) => {
   return current_track.name.length > 0 ? (
     <div className="fixed bottom-0 w-full bg-green-200">
       <div className="flex p-4">
-        {paused ? (
-          <PauseIcon className="m-1 h-10 w-10" />
-        ) : (
-          <PlayIcon className="m-1 h-10 w-10" />
-        )}
+        <span onClick={toggle}>
+          {paused ? (
+            <PlayIcon className="m-1 h-10 w-10" />
+          ) : (
+            <PauseIcon className="m-1 h-10 w-10" />
+          )}
+        </span>
 
         <img
           src={current_track.album.images[0].url}
