@@ -78,7 +78,7 @@ async function paginatedSpotifyFetch<Accumulated>(resourceToPaginate: string, ac
     let spotifyResponse = await spotifyFetch(resource, accessToken)
     accumulator = [...accumulator, ...spotifyResponse.items]
 
-    fetchMore = spotifyResponse.items.length === 50
+    fetchMore = spotifyResponse.items?.length === 50
     offset += 50
   }
   return accumulator
@@ -129,8 +129,8 @@ async function spotifyFetch(
 
     return parsedResponse;
 
-  } catch {
-    // rescue calling .json on empty body!
+  } catch (e) {
+    console.log(e)
     return {}
   }
 }
