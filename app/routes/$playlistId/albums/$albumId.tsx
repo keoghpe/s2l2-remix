@@ -92,9 +92,9 @@ export default function AlbumDetailsPage() {
   return (
     <div>
       <div className="my-3 rounded-lg bg-gray-800 p-6">
-        <div className="grid grid-cols-2">
-          <div className="grid grid-cols-2">
-            <div>
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="p-6">
               <img src={image} alt={name} className="w-full rounded-lg" />
               <h2 className="mt-4 text-2xl font-medium text-white">
                 {name}
@@ -114,6 +114,7 @@ export default function AlbumDetailsPage() {
                   )}
                 </Form>
               </h2>
+              <p className="text-gray-500">{artist}</p>
             </div>
             <div>
               <TrackList
@@ -123,7 +124,6 @@ export default function AlbumDetailsPage() {
                 deviceId={deviceId}
               />
             </div>
-            <p className="text-gray-500">{artist}</p>
           </div>
           <Outlet context={[player, deviceId]} />
         </div>
