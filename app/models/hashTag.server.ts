@@ -1,4 +1,5 @@
 import type { HashTag } from "@prisma/client";
+import { Hash } from "crypto";
 
 import { prisma } from "~/db.server";
 
@@ -14,13 +15,13 @@ export function getTags({
   });
 }
 
-// export function getNoteListItems({ userId }: { userId: User["id"] }) {
-//   return prisma.note.findMany({
-//     where: { userId },
-//     select: { id: true, title: true },
-//     orderBy: { updatedAt: "desc" },
-//   });
-// }
+export function getAlbumIdsForTag({ spotifyUserId,  tag }: Pick<HashTag, "spotifyUserId" | "tag">) {
+  return prisma.hashTag.findMany({
+    where: { tag, spotifyUserId },
+    select: { spotifyAlbumId: true, },
+    orderBy: { updatedAt: "desc" },
+  });
+}
 
 export async function updateTags({
   body,
@@ -28,7 +29,7 @@ export async function updateTags({
   spotifyAlbumId
 }: Pick<HashTag, "spotifyUserId" | "spotifyAlbumId"> & {body: string}) {
 
-  let tags = Array.from(new Set(body.match(/#[\w-_]+/g)));
+  let tags = Array.from(new Set(body.match(/#[\w-_]+/g))).map((s) => s.substring(1));
 
   await prisma.hashTag.deleteMany({
     where: {spotifyUserId,spotifyAlbumId,}

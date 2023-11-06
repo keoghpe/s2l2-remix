@@ -2,6 +2,7 @@ import type { ActionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
+  Link,
   useActionData,
   useLoaderData,
   useTransition,
@@ -200,7 +201,9 @@ export default function NewNotePage() {
 
       <p>
         {data.tags.map(({ id, tag }) => (
-          <p>{tag}</p>
+          <span className="bg-blue border-blue btn-primary hover:bg-blue-light mr-2 rounded-full py-2 px-4 font-sans text-sm font-semibold text-white no-underline shadow-md hover:text-white focus:outline-none active:shadow-none">
+            <Link to={`/tags/${tag}`}>#{tag}</Link>
+          </span>
         ))}
       </p>
     </div>

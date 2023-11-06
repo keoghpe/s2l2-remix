@@ -67,6 +67,13 @@ export async function fetchAlbum(
   return await spotifyFetch(`albums/${albumId}`, accessToken);
 }
 
+export async function fetchAlbums(
+  albumIds: string[],
+  accessToken: string,
+): Promise<SpotifyAlbum[]> {
+  return await spotifyFetch(`albums?ids=${albumIds.join(",")}`, accessToken);
+}
+
 async function paginatedSpotifyFetch<Accumulated>(resourceToPaginate: string, accessToken: string) {
   let accumulator: Accumulated[] = []
   let fetchMore = true
@@ -101,6 +108,8 @@ async function spotifyFetch(
       return JSON.parse(cachedData)
     }
   }
+
+  console.log(resource)
 
   const response = await fetch(
     `https://api.spotify.com/v1/` + resource,
