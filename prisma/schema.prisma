@@ -20,3 +20,16 @@ model Note {
 
   @@unique([spotifyUserId, spotifyAlbumId])
 }
+
+model HashTag {
+  id             String @id @default(cuid())
+  tag            String
+  spotifyUserId  String
+  spotifyAlbumId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([spotifyAlbumId, spotifyUserId, tag])
+  @@index([tag, spotifyAlbumId])
+}

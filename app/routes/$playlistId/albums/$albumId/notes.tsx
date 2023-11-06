@@ -13,6 +13,7 @@ import { marked } from "marked";
 import { upsertNote, getNote } from "~/models/note.server";
 import { spotifyStrategy } from "~/services/auth.server";
 import { requireUserId } from "~/session.server";
+import { getTags, updateTags } from "~/models/hashTag.server";
 
 export async function action({ request, params }: ActionArgs) {
   const spotifyUserId = await requireUserId(request);
@@ -37,11 +38,17 @@ export async function action({ request, params }: ActionArgs) {
     );
   }
 
-  const note = await upsertNote({
+  const _note = await upsertNote({
     rating,
     body,
     spotifyUserId,
     spotifyAlbumId,
+  });
+
+  const _tags = await updateTags({
+    body,
+    spotifyAlbumId,
+    spotifyUserId,
   });
 
   return redirect(`/${params.playlistId}/albums/${params.albumId}/notes`);
@@ -57,10 +64,19 @@ export async function loader({ params, request }) {
     spotifyAlbumId,
   });
 
+  const tags = await getTags({
+    spotifyAlbumId,
+    spotifyUserId,
+  });
+
   return json(
     note
-      ? { ...note, noteHTML: marked(note.body) }
-      : { rating: null, body: null, noteHTML: null }
+      ? {
+          ...note,
+          noteHTML: marked(note.body),
+          tags: tags,
+        }
+      : { rating: null, body: null, noteHTML: null, tags: [] }
   );
 }
 
@@ -178,9 +194,15 @@ export default function NewNotePage() {
       </div>
 
       <article
-        className="prose lg:prose-xl"
+        className="prose dark:prose-invert lg:prose-xl"
         dangerouslySetInnerHTML={{ __html: data.noteHTML }}
       />
+
+      <p>
+        {data.tags.map(({ id, tag }) => (
+          <p>{tag}</p>
+        ))}
+      </p>
     </div>
   );
 }
