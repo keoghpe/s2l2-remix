@@ -70,6 +70,7 @@ export default function NewNotePage() {
   const ratingRef = React.useRef<HTMLInputElement>(null);
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = React.useState(!data.noteHTML);
+  const [rating, setRating] = React.useState(data.rating || 0);
   const transition = useTransition();
   let isSaving = transition.state === "submitting";
   let [wasSaving, setWasSaving] = React.useState(false);
@@ -89,6 +90,8 @@ export default function NewNotePage() {
     setWasSaving(isSaving);
   }, [isSaving]);
 
+  // console.log(data.rating);
+
   return editing ? (
     <Form
       method="post"
@@ -103,6 +106,15 @@ export default function NewNotePage() {
       <div>
         <label className="flex w-full flex-col gap-1 text-white">
           <span>Rating: </span>
+          <div className="text-3xl">
+            {Array.from({ length: rating }, (_, i) => (
+              <span onClick={() => setRating(i + 1)}>&#9733;</span>
+            ))}
+            {Array.from({ length: 10 - rating }, (_, i) => (
+              <span onClick={() => setRating(rating + i + 1)}>&#9734;</span>
+            ))}
+          </div>
+
           <input
             ref={ratingRef}
             name="rating"
@@ -114,7 +126,8 @@ export default function NewNotePage() {
             type="number"
             min="0"
             max="10"
-            defaultValue={data.rating || ""}
+            value={rating}
+            hidden
           />
         </label>
         {actionData?.errors?.rating && (
