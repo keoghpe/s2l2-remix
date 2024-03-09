@@ -6,6 +6,7 @@
     "types": ["vitest/globals"],
     "isolatedModules": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
     "module": "CommonJS",
     "moduleResolution": "node",

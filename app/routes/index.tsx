@@ -1,4 +1,4 @@
-import { json, LoaderArgs } from "@remix-run/node";
+import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 import React from "react";
 import PlaylistGrid from "~/components/PlaylistGrid";
@@ -7,7 +7,7 @@ import PlaylistPreview from "~/components/PlaylistPreview";
 import { spotifyStrategy } from "~/services/auth.server";
 import { fetchPlaylists, SpotifyPlaylist } from "~/services/spotifyApi.server";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   let data: { session: Session | null; playlists: SpotifyPlaylist[] } = {
     session: null,
     playlists: [],

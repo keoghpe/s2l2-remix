@@ -1,11 +1,11 @@
-import type { ActionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
   Link,
   useActionData,
   useLoaderData,
-  useTransition,
+  useNavigation,
 } from "@remix-run/react";
 import * as React from "react";
 import invariant from "tiny-invariant";
@@ -16,7 +16,7 @@ import { spotifyStrategy } from "~/services/auth.server";
 import { requireUserId } from "~/session.server";
 import { getTags, updateTags } from "~/models/hashTag.server";
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const spotifyUserId = await requireUserId(request);
   const spotifyAlbumId = params.albumId;
   invariant(spotifyAlbumId, "Album not found");
@@ -88,7 +88,7 @@ export default function NewNotePage() {
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = React.useState(!data.noteHTML);
   const [rating, setRating] = React.useState(data.rating || 0);
-  const transition = useTransition();
+  const transition = useNavigation();
   let isSaving = transition.state === "submitting";
   let [wasSaving, setWasSaving] = React.useState(false);
 

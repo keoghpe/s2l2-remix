@@ -1,5 +1,5 @@
-import { json, type LoaderArgs } from "@remix-run/node";
-import { useCatch, useLoaderData } from "@remix-run/react";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
+import { isRouteErrorResponse, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { AlbumTile } from "~/components/AlbumTile";
 import { getAlbumIdsForTag } from "~/models/hashTag.server";
@@ -7,7 +7,7 @@ import { spotifyStrategy } from "~/services/auth.server";
 import { fetchAlbums } from "~/services/spotifyApi.server";
 import { requireUserId } from "~/session.server";
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const spotifyUserId = await requireUserId(request);
   invariant(params.tag, "tag not found");
   let tag = String(params.tag);
@@ -47,15 +47,9 @@ export default function TagDetailsPage() {
 export function ErrorBoundary({ error }: { error: Error }) {
   console.error(error);
 
-  return <div>An unexpected error occurred: {error.message}</div>;
-}
-
-export function CatchBoundary() {
-  const caught = useCatch();
-
-  if (caught.status === 404) {
+  if (isRouteErrorResponse(error) && error.status == 404) {
     return <div>Note not found</div>;
   }
 
-  throw new Error(`Unexpected caught response with status: ${caught.status}`);
+  return <div>An unexpected error occurred: {error.message}</div>;
 }

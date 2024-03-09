@@ -1,10 +1,10 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
   Link,
   Outlet,
-  useCatch,
+  isRouteErrorResponse,
   useLoaderData,
   useOutlet,
   useOutletContext,
@@ -21,7 +21,7 @@ import {
   SpotifyTrack,
 } from "~/services/spotifyApi.server";
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   invariant(params.playlistId, "playlist not found");
 
   const session: Session & { user: User } = await spotifyStrategy.getSession(
@@ -75,15 +75,10 @@ export default function PlaylistDetailsPage() {
 export function ErrorBoundary({ error }: { error: Error }) {
   console.error(error);
 
-  return <div>An unexpected error occurred: {error.message}</div>;
-}
-
-export function CatchBoundary() {
-  const caught = useCatch();
-
-  if (caught.status === 404) {
-    return <div>Note not found</div>;
+  if (isRouteErrorResponse(error) && error.status == 404) {
+    return <div>Playlist not found</div>;
   }
 
-  throw new Error(`Unexpected caught response with status: ${caught.status}`);
+
+  return <div>An unexpected error occurred: {error.message}</div>;
 }
