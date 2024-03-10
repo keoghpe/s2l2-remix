@@ -1,4 +1,5 @@
 node_modules
+.DS_Store
 
 /build
 /public/build
@@ -10,3 +11,4 @@ node_modules
 
 /app/styles/tailwind.css
 /data
+/nginx/certs
