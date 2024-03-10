@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { isRouteErrorResponse, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
-import { AlbumTile } from "~/components/AlbumTile";
+import { AlbumTile, albumToAlbumTileProps } from "~/components/AlbumTile";
 import { getAlbumIdsForTag } from "~/models/hashTag.server";
 import { spotifyStrategy } from "~/services/auth.server";
 import { fetchAlbums } from "~/services/spotifyApi.server";
@@ -37,7 +37,7 @@ export default function TagDetailsPage() {
       <h1 className="my-5 text-center text-3xl text-white">#{tag}</h1>
       <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
         {albums["albums"].map((album) => (
-          <AlbumTile {...{ album }} />
+          <AlbumTile {...albumToAlbumTileProps(album)} />
         ))}
       </div>
     </div>

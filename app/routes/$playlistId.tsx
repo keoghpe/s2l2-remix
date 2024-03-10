@@ -12,7 +12,7 @@ import {
 } from "@remix-run/react";
 import { User } from "remix-auth-spotify";
 import invariant from "tiny-invariant";
-import { AlbumTile } from "~/components/AlbumTile";
+import { AlbumTile, albumToAlbumTileProps } from "~/components/AlbumTile";
 import { spotifyStrategy } from "~/services/auth.server";
 import {
   fetchPlaylist,
@@ -65,7 +65,7 @@ export default function PlaylistDetailsPage() {
       <Outlet context={[player, deviceId]} />
       <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3`}>
         {extractAlbums(tracks).map((album) => (
-          <AlbumTile {...{ album }} />
+          <AlbumTile {...albumToAlbumTileProps(album)} />
         ))}
       </div>
     </div>
